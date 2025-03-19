@@ -18,7 +18,7 @@ Route::prefix('v1')->group(function () {
         Route::get('me', [AuthController::class, 'me']);
 
         // Projects
-        Route::get('projects/', [ProjectController::class, 'index']); // Get all active projects
+        Route::get('projects/{id?}', [ProjectController::class, 'index']); // Get all active projects
 
         // Users
         Route::apiResource('users', UserController::class); // Full CRUD operations for users
