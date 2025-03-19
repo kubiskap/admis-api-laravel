@@ -9,68 +9,7 @@ use Illuminate\Http\Request;
 class ProjectController extends Controller
 {
     /**
-     * @OA\Get(
-     *     path="/api/v1/projects/",
-     *     tags={"Projects"},
-     *     summary="Get projects",
-     *     description="Retrieves a paginated list of projects with their related data. Projects are in this list when they have not been deleted.",
-     *     security={{"bearerAuth":{}}},
-     *     @OA\Parameter(
-     *         name="per_page",
-     *         in="query",
-     *         required=false,
-     *         description="Number of items per page",
-     *         @OA\Schema(type="integer", default=15)
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Projects retrieved successfully",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="data", type="array", @OA\Items(
-     *                 type="object",
-     *                 @OA\Property(property="id", type="string", description="Project identifier"),
-     *                 @OA\Property(property="name", type="string", description="Project name"),
-     *                 @OA\Property(property="description", type="string", description="Project description"),
-     *                 @OA\Property(property="projectType", type="object", description="Project type information"),
-     *                 @OA\Property(property="projectSubtype", type="object", description="Project subtype information"),
-     *                 @OA\Property(property="financialSource", type="object", description="Financial source information"),
-     *                 @OA\Property(property="phase", type="object", description="Project phase information"),
-     *                 @OA\Property(property="areas", type="array", @OA\Items(type="object"), description="Project areas"),
-     *                 @OA\Property(property="communications", type="array", @OA\Items(type="object"), description="Project communications"),
-     *                 @OA\Property(property="companies", type="array", @OA\Items(
-     *                     type="object",
-     *                     @OA\Property(property="id", type="string", description="Company identifier"),
-     *                     @OA\Property(property="name", type="string", description="Company name"),
-     *                     @OA\Property(property="type", type="string", description="Company type name")
-     *                 ), description="Related companies with their types"),
-     *                 @OA\Property(property="contacts", type="array", @OA\Items(
-     *                     type="object",
-     *                     @OA\Property(property="id", type="string", description="Contact identifier"),
-     *                     @OA\Property(property="name", type="string", description="Contact name"),
-     *                     @OA\Property(property="type", type="string", description="Contact type name")
-     *                 ), description="Related contacts with their types"),
-     *                 @OA\Property(property="editorUser", type="object", description="User who last edited the project"),
-     *                 @OA\Property(property="authorUser", type="object", description="User who created the project")
-     *             )),
-     *             @OA\Property(property="meta", type="object",
-     *                 @OA\Property(property="pagination", type="object",
-     *                     @OA\Property(property="total", type="integer", description="Total number of records"),
-     *                     @OA\Property(property="per_page", type="integer", description="Number of records per page"),
-     *                     @OA\Property(property="current_page", type="integer", description="Current page number"),
-     *                     @OA\Property(property="last_page", type="integer", description="Last page number")
-     *                 )
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=401,
-     *         description="Unauthenticated. Token is missing or invalid.",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="error", type="string", example="Unauthorized")
-     *         )
-     *     )
-     * )
-     *
+
      * Display a paginated list of projects.
      *
      * @param  \Illuminate\Http\Request  $request
@@ -78,23 +17,120 @@ class ProjectController extends Controller
      */
     public function index(Request $request)
     {
-        $perPage = $request->query('per_page', 15); // Allow customization via query parameter
-        $projects = \App\Models\Project\Project::whereNull('deletedDate')
-            ->with([
-                'projectType',
-                'projectSubtype',
-                'financialSource',
-                'phase',
-                'areas',
-                'communications',
-                'companies',
-                'contacts',
-                'editorUser',
-                'authorUser'
-            ])
-            ->paginate($perPage);
+        $perPage = $request->query('per_page', 15);
+        $query = \App\Models\Project\Project::whereNull('deletedDate');
+
+        // Handle single project by ID from URL parameter or query parameter
+        if ($request->route('id')) {
+            $query->where('idProject', $request->route('id'));
+        }
+
+        // Handle JSON body filters
+        if ($request->has('filter')) {
+            $filters = $request->input('filter');
+
+            // Project basic info filters
+            if (isset($filters['project'])) {
+                $projectFilters = $filters['project'];
+                if (isset($projectFilters['id'])) {
+                    $query->whereIn('idProject', (array)$projectFilters['id']);
+                }
+                if (isset($projectFilters['editor'])) {
+                    $query->whereIn('editor', (array)$projectFilters['editor']);
+                }
+                if (isset($projectFilters['type'])) {
+                    $query->whereIn('idProjectType', (array)$projectFilters['type']);
+                }
+                if (isset($projectFilters['subtype'])) {
+                    $query->whereIn('idProjectSubtype', (array)$projectFilters['subtype']);
+                }
+                if (isset($projectFilters['phase'])) {
+                    $query->whereIn('idPhase', (array)$projectFilters['phase']);
+                }
+                if (isset($projectFilters['financialSource'])) {
+                    $query->whereIn('idFinSource', (array)$projectFilters['financialSource']);
+                }
+            }
+
+            // Related entities filters
+            if (isset($filters['related'])) {
+                $relatedFilters = $filters['related'];
+                if (isset($relatedFilters['communications'])) {
+                    $query->whereHas('communications', function ($q) use ($relatedFilters) {
+                        $q->whereIn('idCommunication', (array)$relatedFilters['communications']);
+                    });
+                }
+                if (isset($relatedFilters['areas'])) {
+                    $query->whereHas('areas', function ($q) use ($relatedFilters) {
+                        $q->whereIn('idArea', (array)$relatedFilters['areas']);
+                    });
+                }
+            }
+
+            // Company filters
+            if (isset($filters['companies'])) {
+                $companyFilters = $filters['companies'];
+                if (isset($companyFilters['supervisor'])) {
+                    $query->whereHas('companies', function ($q) use ($companyFilters) {
+                        $q->where('idCompanyType', 3)
+                          ->whereIn('idCompany', (array)$companyFilters['supervisor']);
+                    });
+                }
+                if (isset($companyFilters['builder'])) {
+                    $query->whereHas('companies', function ($q) use ($companyFilters) {
+                        $q->where('idCompanyType', 2)
+                          ->whereIn('idCompany', (array)$companyFilters['builder']);
+                    });
+                }
+                if (isset($companyFilters['project'])) {
+                    $query->whereHas('companies', function ($q) use ($companyFilters) {
+                        $q->where('idCompanyType', 1)
+                          ->whereIn('idCompany', (array)$companyFilters['project']);
+                    });
+                }
+            }
+        }
+
+        // Handle ordering
+        $orderBy = $request->query('order_by', 'idProject');
+        $orderDirection = $request->query('order_direction', 'asc');
+        
+        // Validate order direction
+        if (!in_array($orderDirection, ['asc', 'desc'])) {
+            $orderDirection = 'asc';
+        }
+
+        // Validate and apply ordering
+        switch ($orderBy) {
+            case 'priority':
+                $query->orderBy('priority', $orderDirection);
+                break;
+            case 'phase':
+                $query->orderBy('idPhase', $orderDirection);
+                break;
+            case 'idProject':
+            default:
+                $query->orderBy('idProject', $orderDirection);
+        }
+
+        // Eager load relationships
+        $query->with([
+            'projectType',
+            'projectSubtype',
+            'financialSource',
+            'phase',
+            'areas',
+            'communications',
+            'companies',
+            'contacts',
+            'editorUser',
+            'authorUser'
+        ]);
+
+        // Get paginated results
+        $projects = $query->paginate($perPage);
             
-        // Load company and contact relations with their types
+        // Transform company and contact relations with their types
         $projects->each(function ($project) {
             // Load with eager loading to begin with
             $project->load(['companies', 'contacts']);
@@ -114,7 +150,6 @@ class ProjectController extends Controller
             });
         });
 
-        // Return paginated results as JSON
         return response()->json($projects);
     }
 }
