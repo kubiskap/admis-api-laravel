@@ -1,0 +1,1663 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "ADMIS API v1",
+        "description": "API documentation for ADMIS system",
+        "version": "1.0"
+    },
+    "servers": [
+        {
+            "url": "https://dev-api.admis.fd.cvut.cz",
+            "description": "API Server"
+        }
+    ],
+    "paths": {
+        "/api/v1/login": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Login to get JWT token",
+                "description": "Authenticates a user and returns a JWT token",
+                "operationId": "bb41d9524d1781b0e0f057673979e5c7",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "username",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "username": {
+                                        "type": "string",
+                                        "format": "username"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful login",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "access_token": {
+                                            "type": "string"
+                                        },
+                                        "token_type": {
+                                            "type": "string",
+                                            "example": "bearer"
+                                        },
+                                        "expires_in": {
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid credentials"
+                    }
+                }
+            }
+        },
+        "/api/v1/me": {
+            "get": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Retrieve authenticated user details",
+                "description": "Fetches the details of the currently authenticated user based on the provided JWT token.",
+                "operationId": "7029e3e8d2d6c300d23adff07cfb497e",
+                "responses": {
+                    "200": {
+                        "description": "User information retrieved successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "username": {
+                                            "description": "User's unique identifier",
+                                            "type": "string"
+                                        },
+                                        "name": {
+                                            "description": "User's full name",
+                                            "type": "string"
+                                        },
+                                        "email": {
+                                            "description": "User's email address",
+                                            "type": "string",
+                                            "format": "email"
+                                        },
+                                        "idOu": {
+                                            "description": "User's organization unit identifier",
+                                            "type": "string"
+                                        },
+                                        "idRoleType": {
+                                            "description": "User's role type identifier",
+                                            "type": "string"
+                                        },
+                                        "idAuthorityType": {
+                                            "description": "User's authority type identifier",
+                                            "type": "string"
+                                        },
+                                        "accessDenied": {
+                                            "description": "Whether user access is denied",
+                                            "type": "boolean"
+                                        },
+                                        "idReportConfig": {
+                                            "description": "User's report configuration identifier",
+                                            "type": "string"
+                                        },
+                                        "editorReport": {
+                                            "description": "Whether user can edit reports",
+                                            "type": "boolean"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated. Token is missing or invalid.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Unauthorized"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/logout": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Logout user and invalidate token",
+                "description": "Logs out the authenticated user and invalidates their JWT token.",
+                "operationId": "944f39c800d7ae24b55b18868e032d07",
+                "responses": {
+                    "200": {
+                        "description": "Logout successful. Token invalidated.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Successfully logged out"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated. Token is missing or invalid.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Unauthorized"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/refresh": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Refresh JWT token",
+                "description": "Generates a new JWT token using the current valid token. The old token will be invalidated.",
+                "operationId": "ffaeee28eb14655973d0c37360e5d73d",
+                "responses": {
+                    "200": {
+                        "description": "Token refreshed successfully. Returns the new token.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "access_token": {
+                                            "description": "New JWT access token",
+                                            "type": "string"
+                                        },
+                                        "token_type": {
+                                            "description": "Token type",
+                                            "type": "string",
+                                            "example": "bearer"
+                                        },
+                                        "expires_in": {
+                                            "description": "Token expiration time in seconds",
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated. Token is missing or invalid.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Unauthorized"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/{type}/{model}/{id}": {
+            "get": {
+                "tags": [
+                    "Resources"
+                ],
+                "summary": "Get resources",
+                "description": "Retrieves resources from the specified model type (enum or view). Supports filtering, sorting, and pagination.",
+                "operationId": "6d12f9c8bbe9514caa64c8ce45563087",
+                "parameters": [
+                    {
+                        "name": "type",
+                        "in": "path",
+                        "description": "Resource type (enum or view)",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "enum",
+                                "view"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "model",
+                        "in": "path",
+                        "description": "Model name (e.g., 'roleType', 'projectDetails', etc.)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Resource identifier (optional - if not provided, returns all resources)",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number for pagination",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Number of items per page",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 10
+                        }
+                    },
+                    {
+                        "name": "filter_field",
+                        "in": "query",
+                        "description": "Field to filter by",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "filter_value",
+                        "in": "query",
+                        "description": "Value to filter by (uses partial matching)",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "sort_field",
+                        "in": "query",
+                        "description": "Field to sort by",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "sort_order",
+                        "in": "query",
+                        "description": "Sort order: 1 for ascending, -1 for descending",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "oneOf": [
+                                        {
+                                            "properties": {
+                                                "data": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "meta": {
+                                                    "properties": {
+                                                        "pagination": {
+                                                            "type": "object"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        {
+                                            "type": "object"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Resource type, model, or resource not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Resource not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid resource type",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Invalid resource type"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Resources"
+                ],
+                "summary": "Update a resource",
+                "description": "Updates an existing resource with the provided data",
+                "operationId": "2c279055f16965db03eb821e5dedd4f7",
+                "parameters": [
+                    {
+                        "name": "type",
+                        "in": "path",
+                        "description": "Resource type (enum or view)",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "enum",
+                                "view"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "model",
+                        "in": "path",
+                        "description": "Model name (e.g., 'roleType', 'projectDetails', etc.)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Resource identifier",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Updated resource data",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Resource updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Model or resource not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Resource not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "errors": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid resource type",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Invalid resource type"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Resources"
+                ],
+                "summary": "Delete a resource",
+                "description": "Permanently deletes the specified resource",
+                "operationId": "ec66d63a232ab09c1d15a9430a2c3ba0",
+                "parameters": [
+                    {
+                        "name": "type",
+                        "in": "path",
+                        "description": "Resource type (enum or view)",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "enum",
+                                "view"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "model",
+                        "in": "path",
+                        "description": "Model name (e.g., 'roleType', 'projectDetails', etc.)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Resource identifier",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Resource deleted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Deleted successfully"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Model or resource not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Resource not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid resource type",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Invalid resource type"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/{type}/{model}": {
+            "post": {
+                "tags": [
+                    "Resources"
+                ],
+                "summary": "Create a new resource",
+                "description": "Creates a new resource in the specified model type (enum or view)",
+                "operationId": "3774b503037aae6d3e05dd671513a58c",
+                "parameters": [
+                    {
+                        "name": "type",
+                        "in": "path",
+                        "description": "Resource type (enum or view)",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "enum",
+                                "view"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "model",
+                        "in": "path",
+                        "description": "Model name (e.g., 'roleType', 'projectDetails', etc.)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Resource data",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Resource created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Model not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Model not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "errors": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid resource type",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Invalid resource type"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/projects/active": {
+            "get": {
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "Get active projects",
+                "description": "Retrieves a paginated list of active projects with their related data. Projects are considered active when they have not been deleted.",
+                "operationId": "8202cd9e2aadb60e9d2a5d44566c2789",
+                "parameters": [
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Number of items per page",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 15
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Active projects retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "description": "Project identifier",
+                                                        "type": "string"
+                                                    },
+                                                    "name": {
+                                                        "description": "Project name",
+                                                        "type": "string"
+                                                    },
+                                                    "description": {
+                                                        "description": "Project description",
+                                                        "type": "string"
+                                                    },
+                                                    "projectType": {
+                                                        "description": "Project type information",
+                                                        "type": "object"
+                                                    },
+                                                    "projectSubtype": {
+                                                        "description": "Project subtype information",
+                                                        "type": "object"
+                                                    },
+                                                    "financialSource": {
+                                                        "description": "Financial source information",
+                                                        "type": "object"
+                                                    },
+                                                    "phase": {
+                                                        "description": "Project phase information",
+                                                        "type": "object"
+                                                    },
+                                                    "areas": {
+                                                        "description": "Project areas",
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "object"
+                                                        }
+                                                    },
+                                                    "communications": {
+                                                        "description": "Project communications",
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "object"
+                                                        }
+                                                    },
+                                                    "companies": {
+                                                        "description": "Related companies with their types",
+                                                        "type": "array",
+                                                        "items": {
+                                                            "properties": {
+                                                                "id": {
+                                                                    "description": "Company identifier",
+                                                                    "type": "string"
+                                                                },
+                                                                "name": {
+                                                                    "description": "Company name",
+                                                                    "type": "string"
+                                                                },
+                                                                "type": {
+                                                                    "description": "Company type name",
+                                                                    "type": "string"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        }
+                                                    },
+                                                    "contacts": {
+                                                        "description": "Related contacts with their types",
+                                                        "type": "array",
+                                                        "items": {
+                                                            "properties": {
+                                                                "id": {
+                                                                    "description": "Contact identifier",
+                                                                    "type": "string"
+                                                                },
+                                                                "name": {
+                                                                    "description": "Contact name",
+                                                                    "type": "string"
+                                                                },
+                                                                "type": {
+                                                                    "description": "Contact type name",
+                                                                    "type": "string"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        }
+                                                    },
+                                                    "editorUser": {
+                                                        "description": "User who last edited the project",
+                                                        "type": "object"
+                                                    },
+                                                    "authorUser": {
+                                                        "description": "User who created the project",
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "meta": {
+                                            "properties": {
+                                                "pagination": {
+                                                    "properties": {
+                                                        "total": {
+                                                            "description": "Total number of records",
+                                                            "type": "integer"
+                                                        },
+                                                        "per_page": {
+                                                            "description": "Number of records per page",
+                                                            "type": "integer"
+                                                        },
+                                                        "current_page": {
+                                                            "description": "Current page number",
+                                                            "type": "integer"
+                                                        },
+                                                        "last_page": {
+                                                            "description": "Last page number",
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated. Token is missing or invalid.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Unauthorized"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/users": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get all users",
+                "description": "Retrieves a paginated list of all users with their related data",
+                "operationId": "70c68ff861b6ff415d5f532ad9e6ce8f",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number for pagination",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Number of items per page",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 15
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of users retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "username": {
+                                                        "description": "User's unique identifier",
+                                                        "type": "string"
+                                                    },
+                                                    "name": {
+                                                        "description": "User's full name",
+                                                        "type": "string"
+                                                    },
+                                                    "email": {
+                                                        "description": "User's email address",
+                                                        "type": "string",
+                                                        "format": "email"
+                                                    },
+                                                    "idOu": {
+                                                        "description": "User's organization unit identifier",
+                                                        "type": "string"
+                                                    },
+                                                    "idRoleType": {
+                                                        "description": "User's role type identifier",
+                                                        "type": "string"
+                                                    },
+                                                    "idAuthorityType": {
+                                                        "description": "User's authority type identifier",
+                                                        "type": "string"
+                                                    },
+                                                    "accessDenied": {
+                                                        "description": "Whether user access is denied",
+                                                        "type": "boolean"
+                                                    },
+                                                    "idReportConfig": {
+                                                        "description": "User's report configuration identifier",
+                                                        "type": "string"
+                                                    },
+                                                    "editorReport": {
+                                                        "description": "Whether user can edit reports",
+                                                        "type": "boolean"
+                                                    },
+                                                    "ou": {
+                                                        "description": "Organization unit information",
+                                                        "type": "object"
+                                                    },
+                                                    "roleType": {
+                                                        "description": "Role type information",
+                                                        "type": "object"
+                                                    },
+                                                    "authorityType": {
+                                                        "description": "Authority type information",
+                                                        "type": "object"
+                                                    },
+                                                    "reportConfig": {
+                                                        "description": "Report configuration information",
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "meta": {
+                                            "properties": {
+                                                "pagination": {
+                                                    "properties": {
+                                                        "total": {
+                                                            "description": "Total number of records",
+                                                            "type": "integer"
+                                                        },
+                                                        "per_page": {
+                                                            "description": "Number of records per page",
+                                                            "type": "integer"
+                                                        },
+                                                        "current_page": {
+                                                            "description": "Current page number",
+                                                            "type": "integer"
+                                                        },
+                                                        "last_page": {
+                                                            "description": "Last page number",
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated. Token is missing or invalid.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Unauthorized"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Create a new user",
+                "description": "Creates a new user with the provided data",
+                "operationId": "c24a1e4679b03319b7eaf375bd47f01e",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "username",
+                                    "name",
+                                    "email",
+                                    "password",
+                                    "idOu",
+                                    "idRoleType",
+                                    "idAuthorityType"
+                                ],
+                                "properties": {
+                                    "username": {
+                                        "description": "User's unique identifier",
+                                        "type": "string"
+                                    },
+                                    "name": {
+                                        "description": "User's full name",
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "description": "User's email address",
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "password": {
+                                        "description": "User's password",
+                                        "type": "string",
+                                        "format": "password"
+                                    },
+                                    "idOu": {
+                                        "description": "User's organization unit identifier",
+                                        "type": "string"
+                                    },
+                                    "idRoleType": {
+                                        "description": "User's role type identifier",
+                                        "type": "string"
+                                    },
+                                    "idAuthorityType": {
+                                        "description": "User's authority type identifier",
+                                        "type": "string"
+                                    },
+                                    "idReportConfig": {
+                                        "description": "User's report configuration identifier",
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "editorReport": {
+                                        "description": "Whether user can edit reports",
+                                        "type": "boolean",
+                                        "nullable": true
+                                    },
+                                    "accessDenied": {
+                                        "description": "Whether user access is denied",
+                                        "type": "boolean",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "User created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "username": {
+                                            "description": "User's unique identifier",
+                                            "type": "string"
+                                        },
+                                        "name": {
+                                            "description": "User's full name",
+                                            "type": "string"
+                                        },
+                                        "email": {
+                                            "description": "User's email address",
+                                            "type": "string",
+                                            "format": "email"
+                                        },
+                                        "idOu": {
+                                            "description": "User's organization unit identifier",
+                                            "type": "string"
+                                        },
+                                        "idRoleType": {
+                                            "description": "User's role type identifier",
+                                            "type": "string"
+                                        },
+                                        "idAuthorityType": {
+                                            "description": "User's authority type identifier",
+                                            "type": "string"
+                                        },
+                                        "accessDenied": {
+                                            "description": "Whether user access is denied",
+                                            "type": "boolean"
+                                        },
+                                        "idReportConfig": {
+                                            "description": "User's report configuration identifier",
+                                            "type": "string"
+                                        },
+                                        "editorReport": {
+                                            "description": "Whether user can edit reports",
+                                            "type": "boolean"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "errors": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated. Token is missing or invalid.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Unauthorized"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/users/{username}": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get user by username",
+                "description": "Retrieves detailed information about a specific user by their username",
+                "operationId": "c5ccef24dc66dba599b30e283e0de542",
+                "parameters": [
+                    {
+                        "name": "username",
+                        "in": "path",
+                        "description": "User's unique identifier",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "username": {
+                                            "description": "User's unique identifier",
+                                            "type": "string"
+                                        },
+                                        "name": {
+                                            "description": "User's full name",
+                                            "type": "string"
+                                        },
+                                        "email": {
+                                            "description": "User's email address",
+                                            "type": "string",
+                                            "format": "email"
+                                        },
+                                        "idOu": {
+                                            "description": "User's organization unit identifier",
+                                            "type": "string"
+                                        },
+                                        "idRoleType": {
+                                            "description": "User's role type identifier",
+                                            "type": "string"
+                                        },
+                                        "idAuthorityType": {
+                                            "description": "User's authority type identifier",
+                                            "type": "string"
+                                        },
+                                        "accessDenied": {
+                                            "description": "Whether user access is denied",
+                                            "type": "boolean"
+                                        },
+                                        "idReportConfig": {
+                                            "description": "User's report configuration identifier",
+                                            "type": "string"
+                                        },
+                                        "editorReport": {
+                                            "description": "Whether user can edit reports",
+                                            "type": "boolean"
+                                        },
+                                        "ou": {
+                                            "description": "Organization unit information",
+                                            "type": "object"
+                                        },
+                                        "roleType": {
+                                            "description": "Role type information",
+                                            "type": "object"
+                                        },
+                                        "authorityType": {
+                                            "description": "Authority type information",
+                                            "type": "object"
+                                        },
+                                        "reportConfig": {
+                                            "description": "Report configuration information",
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "User not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated. Token is missing or invalid.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Unauthorized"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Update a user",
+                "description": "Updates an existing user with the provided data",
+                "operationId": "4eae5807c2138432cc8c69165a8230cd",
+                "parameters": [
+                    {
+                        "name": "username",
+                        "in": "path",
+                        "description": "User's unique identifier",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "description": "User's full name",
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "description": "User's email address",
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "password": {
+                                        "description": "User's password",
+                                        "type": "string",
+                                        "format": "password"
+                                    },
+                                    "idOu": {
+                                        "description": "User's organization unit identifier",
+                                        "type": "string"
+                                    },
+                                    "idRoleType": {
+                                        "description": "User's role type identifier",
+                                        "type": "string"
+                                    },
+                                    "idAuthorityType": {
+                                        "description": "User's authority type identifier",
+                                        "type": "string"
+                                    },
+                                    "idReportConfig": {
+                                        "description": "User's report configuration identifier",
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "editorReport": {
+                                        "description": "Whether user can edit reports",
+                                        "type": "boolean",
+                                        "nullable": true
+                                    },
+                                    "accessDenied": {
+                                        "description": "Whether user access is denied",
+                                        "type": "boolean",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "User updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "username": {
+                                            "description": "User's unique identifier",
+                                            "type": "string"
+                                        },
+                                        "name": {
+                                            "description": "User's full name",
+                                            "type": "string"
+                                        },
+                                        "email": {
+                                            "description": "User's email address",
+                                            "type": "string",
+                                            "format": "email"
+                                        },
+                                        "idOu": {
+                                            "description": "User's organization unit identifier",
+                                            "type": "string"
+                                        },
+                                        "idRoleType": {
+                                            "description": "User's role type identifier",
+                                            "type": "string"
+                                        },
+                                        "idAuthorityType": {
+                                            "description": "User's authority type identifier",
+                                            "type": "string"
+                                        },
+                                        "accessDenied": {
+                                            "description": "Whether user access is denied",
+                                            "type": "boolean"
+                                        },
+                                        "idReportConfig": {
+                                            "description": "User's report configuration identifier",
+                                            "type": "string"
+                                        },
+                                        "editorReport": {
+                                            "description": "Whether user can edit reports",
+                                            "type": "boolean"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "User not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "errors": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated. Token is missing or invalid.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Unauthorized"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Delete a user",
+                "description": "Permanently deletes an existing user",
+                "operationId": "df64e7d1090f94f8ffd70b59a39380f6",
+                "parameters": [
+                    {
+                        "name": "username",
+                        "in": "path",
+                        "description": "User's unique identifier",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "User deleted successfully"
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "User not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated. Token is missing or invalid.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Unauthorized"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Authentication",
+            "description": "Authentication endpoints"
+        },
+        {
+            "name": "Users",
+            "description": "User management endpoints"
+        },
+        {
+            "name": "Projects",
+            "description": "Project management endpoints"
+        },
+        {
+            "name": "Resources",
+            "description": "Enum and View resource endpoints"
+        }
+    ]
+}

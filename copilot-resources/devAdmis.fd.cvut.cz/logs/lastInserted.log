@@ -1,0 +1,21 @@
+\nArray
+(
+    [passable] => on
+    [deadlines] => Array
+        (
+            [0] => Array
+                (
+                    [value] => 
+                    [note] => 
+                    [idDeadlineType] => 24
+                )
+
+        )
+
+    [technologyWarrantyPeriod] => 
+    [constructionWarrantyPeriod] => 
+    [idPhase] => 1
+    [editor] => dolezon3
+    [idProject] => 447
+    [inConcept] => 1
+)

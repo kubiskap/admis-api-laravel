@@ -1,0 +1,80 @@
+null
+
+01/09/2025 03:11:47 pm
+insertProject
+Array
+(
+    [passable] => on
+    [deadlines] => Array
+        (
+            [0] => Array
+                (
+                    [value] => 
+                    [note] => 
+                    [idDeadlineType] => 24
+                )
+
+        )
+
+    [technologyWarrantyPeriod] => 
+    [constructionWarrantyPeriod] => 
+    [idPhase] => 2
+    [editor] => dolezon3
+    [idProject] => 59
+    [inConcept] => 1
+)
+
+520
+SQLSTATE[22007]: Invalid datetime format: 1366 Incorrect integer value: 'on' for column `admis_new_dev3`.`projects`.`passable` at row 1
+01/09/2025 03:12:03 pm
+insertProject
+Array
+(
+    [passable] => on
+    [deadlines] => Array
+        (
+            [0] => Array
+                (
+                    [value] => 
+                    [note] => 
+                    [idDeadlineType] => 24
+                )
+
+        )
+
+    [technologyWarrantyPeriod] => 
+    [constructionWarrantyPeriod] => 
+    [idPhase] => 2
+    [editor] => dolezon3
+    [idProject] => 59
+    [inConcept] => 1
+)
+
+520
+SQLSTATE[22007]: Invalid datetime format: 1366 Incorrect integer value: 'on' for column `admis_new_dev3`.`projects`.`passable` at row 1
+01/09/2025 03:12:55 pm
+insertProject
+Array
+(
+    [passable] => on
+    [deadlines] => Array
+        (
+            [0] => Array
+                (
+                    [value] => 
+                    [note] => 
+                    [idDeadlineType] => 24
+                )
+
+        )
+
+    [technologyWarrantyPeriod] => 
+    [constructionWarrantyPeriod] => 
+    [idPhase] => 2
+    [editor] => dolezon3
+    [idProject] => 59
+    [inConcept] => 1
+)
+
+520
+SQLSTATE[22007]: Invalid datetime format: 1366 Incorrect integer value: 'on' for column `admis_new_dev3`.`projects`.`passable` at row 1
