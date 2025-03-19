@@ -767,14 +767,96 @@
                 ]
             }
         },
-        "/api/v1/projects/active": {
+        "/v1/projects/{id?}": {
             "get": {
                 "tags": [
                     "Projects"
                 ],
-                "summary": "Get active projects",
-                "description": "Retrieves a paginated list of active projects with their related data. Projects are considered active when they have not been deleted.",
-                "operationId": "8202cd9e2aadb60e9d2a5d44566c2789",
+                "summary": "Get all projects or a single project",
+                "description": "Retrieves a paginated list of all projects or a single project if ID is provided",
+                "operationId": "getProjects",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Project ID to retrieve a single project",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Number of items per page",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 15
+                        }
+                    },
+                    {
+                        "name": "sort_field",
+                        "in": "query",
+                        "description": "Field to sort by",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "idProject"
+                        }
+                    },
+                    {
+                        "name": "sort_order",
+                        "in": "query",
+                        "description": "Sort order: 1 for ascending, -1 for descending",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/projects/search": {
+            "post": {
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "Search projects with filters",
+                "description": "Search projects using various filters provided in the request body",
+                "operationId": "searchProjects",
                 "parameters": [
                     {
                         "name": "per_page",
@@ -785,11 +867,135 @@
                             "type": "integer",
                             "default": 15
                         }
+                    },
+                    {
+                        "name": "sort_field",
+                        "in": "query",
+                        "description": "Field to sort by",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "idProject"
+                        }
+                    },
+                    {
+                        "name": "sort_order",
+                        "in": "query",
+                        "description": "Sort order: 1 for ascending, -1 for descending",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
                     }
                 ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "filter": {
+                                        "properties": {
+                                            "project": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "editor": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "ou": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "type": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "subtype": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "phase": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "financialSource": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "integer"
+                                                        }
+                                                    }
+                                                },
+                                                "type": "object"
+                                            },
+                                            "related": {
+                                                "properties": {
+                                                    "communications": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "areas": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "integer"
+                                                        }
+                                                    }
+                                                },
+                                                "type": "object"
+                                            },
+                                            "companies": {
+                                                "properties": {
+                                                    "supervisor": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "builder": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "project": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "integer"
+                                                        }
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
                 "responses": {
                     "200": {
-                        "description": "Active projects retrieved successfully",
+                        "description": "Successful operation",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -797,127 +1003,10 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "properties": {
-                                                    "id": {
-                                                        "description": "Project identifier",
-                                                        "type": "string"
-                                                    },
-                                                    "name": {
-                                                        "description": "Project name",
-                                                        "type": "string"
-                                                    },
-                                                    "description": {
-                                                        "description": "Project description",
-                                                        "type": "string"
-                                                    },
-                                                    "projectType": {
-                                                        "description": "Project type information",
-                                                        "type": "object"
-                                                    },
-                                                    "projectSubtype": {
-                                                        "description": "Project subtype information",
-                                                        "type": "object"
-                                                    },
-                                                    "financialSource": {
-                                                        "description": "Financial source information",
-                                                        "type": "object"
-                                                    },
-                                                    "phase": {
-                                                        "description": "Project phase information",
-                                                        "type": "object"
-                                                    },
-                                                    "areas": {
-                                                        "description": "Project areas",
-                                                        "type": "array",
-                                                        "items": {
-                                                            "type": "object"
-                                                        }
-                                                    },
-                                                    "communications": {
-                                                        "description": "Project communications",
-                                                        "type": "array",
-                                                        "items": {
-                                                            "type": "object"
-                                                        }
-                                                    },
-                                                    "companies": {
-                                                        "description": "Related companies with their types",
-                                                        "type": "array",
-                                                        "items": {
-                                                            "properties": {
-                                                                "id": {
-                                                                    "description": "Company identifier",
-                                                                    "type": "string"
-                                                                },
-                                                                "name": {
-                                                                    "description": "Company name",
-                                                                    "type": "string"
-                                                                },
-                                                                "type": {
-                                                                    "description": "Company type name",
-                                                                    "type": "string"
-                                                                }
-                                                            },
-                                                            "type": "object"
-                                                        }
-                                                    },
-                                                    "contacts": {
-                                                        "description": "Related contacts with their types",
-                                                        "type": "array",
-                                                        "items": {
-                                                            "properties": {
-                                                                "id": {
-                                                                    "description": "Contact identifier",
-                                                                    "type": "string"
-                                                                },
-                                                                "name": {
-                                                                    "description": "Contact name",
-                                                                    "type": "string"
-                                                                },
-                                                                "type": {
-                                                                    "description": "Contact type name",
-                                                                    "type": "string"
-                                                                }
-                                                            },
-                                                            "type": "object"
-                                                        }
-                                                    },
-                                                    "editorUser": {
-                                                        "description": "User who last edited the project",
-                                                        "type": "object"
-                                                    },
-                                                    "authorUser": {
-                                                        "description": "User who created the project",
-                                                        "type": "object"
-                                                    }
-                                                },
                                                 "type": "object"
                                             }
                                         },
                                         "meta": {
-                                            "properties": {
-                                                "pagination": {
-                                                    "properties": {
-                                                        "total": {
-                                                            "description": "Total number of records",
-                                                            "type": "integer"
-                                                        },
-                                                        "per_page": {
-                                                            "description": "Number of records per page",
-                                                            "type": "integer"
-                                                        },
-                                                        "current_page": {
-                                                            "description": "Current page number",
-                                                            "type": "integer"
-                                                        },
-                                                        "last_page": {
-                                                            "description": "Last page number",
-                                                            "type": "integer"
-                                                        }
-                                                    },
-                                                    "type": "object"
-                                                }
-                                            },
                                             "type": "object"
                                         }
                                     },
@@ -927,20 +1016,7 @@
                         }
                     },
                     "401": {
-                        "description": "Unauthenticated. Token is missing or invalid.",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "example": "Unauthorized"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
+                        "description": "Unauthenticated"
                     }
                 },
                 "security": [
@@ -1653,7 +1729,7 @@
         },
         {
             "name": "Projects",
-            "description": "Project management endpoints"
+            "description": "API endpoints for managing projects"
         },
         {
             "name": "Resources",

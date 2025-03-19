@@ -6,13 +6,64 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\ProjectResource;
 use Illuminate\Http\Request;
 
+/**
+ * @OA\Tag(
+ *     name="Projects",
+ *     description="API endpoints for managing projects"
+ * )
+ */
 class ProjectController extends Controller
 {
     /**
-     * Display a paginated list of projects.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
+     * @OA\Get(
+     *     path="/v1/projects/{id?}",
+     *     summary="Get all projects or a single project",
+     *     description="Retrieves a paginated list of all projects or a single project if ID is provided",
+     *     operationId="getProjects",
+     *     tags={"Projects"},
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Project ID to retrieve a single project",
+     *         required=false,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         description="Number of items per page",
+     *         required=false,
+     *         @OA\Schema(type="integer", default=15)
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort_field",
+     *         in="query",
+     *         description="Field to sort by",
+     *         required=false,
+     *         @OA\Schema(type="string", default="idProject")
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort_order",
+     *         in="query",
+     *         description="Sort order: 1 for ascending, -1 for descending",
+     *         required=false,
+     *         @OA\Schema(type="integer", default=1)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object")),
+     *             @OA\Property(property="meta", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     )
+     * )
      */
     public function index(Request $request)
     {
@@ -25,26 +76,9 @@ class ProjectController extends Controller
         }
 
         // Handle ordering
-        $orderBy = $request->query('order_by', 'idProject');
-        $orderDirection = $request->query('order_direction', 'asc');
-        
-        // Validate order direction
-        if (!in_array($orderDirection, ['asc', 'desc'])) {
-            $orderDirection = 'asc';
-        }
-
-        // Validate and apply ordering
-        switch ($orderBy) {
-            case 'priority':
-                $query->orderBy('priority', $orderDirection);
-                break;
-            case 'phase':
-                $query->orderBy('idPhase', $orderDirection);
-                break;
-            case 'idProject':
-            default:
-                $query->orderBy('idProject', $orderDirection);
-        }
+        $sortField = $request->query('sort_field', 'idProject');
+        $sortOrder = (int) $request->query('sort_order', 1) === -1 ? 'desc' : 'asc';
+        $query->orderBy($sortField, $sortOrder);
 
         // Eager load relationships
         $query->with([
@@ -87,10 +121,82 @@ class ProjectController extends Controller
     }
 
     /**
-     * Search projects with filters.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
+     * @OA\Post(
+     *     path="/v1/projects/search",
+     *     summary="Search projects with filters",
+     *     description="Search projects using various filters provided in the request body",
+     *     operationId="searchProjects",
+     *     tags={"Projects"},
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         description="Number of items per page",
+     *         required=false,
+     *         @OA\Schema(type="integer", default=15)
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort_field",
+     *         in="query",
+     *         description="Field to sort by",
+     *         required=false,
+     *         @OA\Schema(type="string", default="idProject")
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort_order",
+     *         in="query",
+     *         description="Sort order: 1 for ascending, -1 for descending",
+     *         required=false,
+     *         @OA\Schema(type="integer", default=1)
+     *     ),
+     *     @OA\RequestBody(
+     *         required=false,
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="filter",
+     *                 type="object",
+     *                 @OA\Property(
+     *                     property="project",
+     *                     type="object",
+     *                     @OA\Property(property="id", type="array", @OA\Items(type="integer")),
+     *                     @OA\Property(property="editor", type="array", @OA\Items(type="string")),
+     *                     @OA\Property(property="ou", type="array", @OA\Items(type="integer")),
+     *                     @OA\Property(property="type", type="array", @OA\Items(type="integer")),
+     *                     @OA\Property(property="subtype", type="array", @OA\Items(type="integer")),
+     *                     @OA\Property(property="phase", type="array", @OA\Items(type="integer")),
+     *                     @OA\Property(property="financialSource", type="array", @OA\Items(type="integer"))
+     *                 ),
+     *                 @OA\Property(
+     *                     property="related",
+     *                     type="object",
+     *                     @OA\Property(property="communications", type="array", @OA\Items(type="integer")),
+     *                     @OA\Property(property="areas", type="array", @OA\Items(type="integer"))
+     *                 ),
+     *                 @OA\Property(
+     *                     property="companies",
+     *                     type="object",
+     *                     @OA\Property(property="supervisor", type="array", @OA\Items(type="integer")),
+     *                     @OA\Property(property="builder", type="array", @OA\Items(type="integer")),
+     *                     @OA\Property(property="project", type="array", @OA\Items(type="integer"))
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object")),
+     *             @OA\Property(property="meta", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     )
+     * )
      */
     public function search(Request $request)
     {
@@ -181,26 +287,9 @@ class ProjectController extends Controller
         }
 
         // Handle ordering
-        $orderBy = $request->query('order_by', 'idProject');
-        $orderDirection = $request->query('order_direction', 'asc');
-        
-        // Validate order direction
-        if (!in_array($orderDirection, ['asc', 'desc'])) {
-            $orderDirection = 'asc';
-        }
-
-        // Validate and apply ordering
-        switch ($orderBy) {
-            case 'priority':
-                $query->orderBy('priority', $orderDirection);
-                break;
-            case 'phase':
-                $query->orderBy('idPhase', $orderDirection);
-                break;
-            case 'idProject':
-            default:
-                $query->orderBy('idProject', $orderDirection);
-        }
+        $sortField = $request->query('sort_field', 'idProject');
+        $sortOrder = (int) $request->query('sort_order', 1) === -1 ? 'desc' : 'asc';
+        $query->orderBy($sortField, $sortOrder);
 
         // Eager load only the required relationships with specific attributes
         $query->with([
