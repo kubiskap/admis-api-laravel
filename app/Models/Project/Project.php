@@ -25,6 +25,59 @@ class Project extends Model
      */
     public $timestamps = false;
 
+    /**
+     * The attributes that can be mass assigned.
+     * (Add any other columns you want to allow through ->create() or ->update() calls.)
+     */
+    protected $fillable = [
+        'idProjectType',
+        'idProjectSubtype',
+        'technologicalProjectType',
+        'created',
+        'name',
+        'subject',
+        'editor',
+        'author',
+        'idFinSource',
+        'idFinSourcePD',
+        'idPhase',
+        'idLocalProject',
+        'ginisOrAthena',
+        'noteGinisOrAthena',
+        'deletedDate',
+        'deleteAuthor',
+        'inConcept',
+        'dateEvidence',
+        'deadlineDurUrRequired',
+        'deadlineEIARequired',
+        'deadlineStudyRequired',
+        'deadlineTesRequired',
+        'mergedDeadlines',
+        'constructionTime',
+        'constructionTimeWeeksOrMonths',
+        'mergePricePDAD',
+        'constructionWarrantyPeriod',
+        'technologyWarrantyPeriod',
+        'priorityAtts',
+        'passable',
+    ];
+
+    /**
+     * Here, define any attribute casts (e.g., for date, boolean, JSON):
+     */
+    protected $casts = [
+        'created' => 'datetime',
+        'deletedDate' => 'datetime',
+        'inConcept' => 'boolean',
+        'dateEvidence' => 'boolean',
+        'deadlineDurUrRequired' => 'boolean',
+        'deadlineEIARequired' => 'boolean',
+        'deadlineStudyRequired' => 'boolean',
+        'deadlineTesRequired' => 'boolean',
+        'passable' => 'boolean',
+        'priorityAtts' => 'json',
+    ];
+
     /************************************************
      *             RELATIONSHIPS
      ************************************************/
@@ -74,8 +127,8 @@ class Project extends Model
         return $this->belongsToMany(
             \App\Models\Enums\Area::class,
             'project2area',
-            'idProject',   // FK on project2area pointing to this table
-            'idArea'       // FK on project2area pointing to rangeAreas
+            'idProject',   // pivot FK referencing 'projects'
+            'idArea'       // pivot FK referencing 'rangeAreas'
         );
     }
 
@@ -91,7 +144,7 @@ class Project extends Model
             'idProject',
             'idCompany'
         )->using(\App\Models\Pivots\ProjectCompany::class)
-        ->withPivot('idCompanyType');
+         ->withPivot('idCompanyType');
     }
 
     /**
@@ -105,8 +158,7 @@ class Project extends Model
             'project2communication',
             'idProject',
             'idCommunication'
-        )
-        ->withPivot([
+        )->withPivot([
             'stationingFrom',
             'stationingTo',
             'gpsN1',
@@ -130,19 +182,21 @@ class Project extends Model
             'idProject',
             'idContact'
         )->using(\App\Models\Pivots\ProjectContact::class)
-        ->withPivot('idContactType');
+         ->withPivot('idContactType');
     }
 
     /**
-     * If you have an actual 'User' model in Models\, a project can have
-     * an 'editor' user and an 'author' user. Note we do not
-     * define belongsToMany because it's 1:1 for each column.
+     * A project can have an 'editor' user (projects.editor -> users.username).
+     * We do not define belongsToMany because it's a 1:1 reference to one user column.
      */
     public function editorUser(): BelongsTo
     {
         return $this->belongsTo(\App\Models\Users\User::class, 'editor', 'username');
     }
 
+    /**
+     * A project can have an 'author' user (projects.author -> users.username).
+     */
     public function authorUser(): BelongsTo
     {
         return $this->belongsTo(\App\Models\Users\User::class, 'author', 'username');
