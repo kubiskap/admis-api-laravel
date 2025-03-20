@@ -78,6 +78,6 @@ class ActionLog extends Model
      */
     public function projectVersion(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\Enums\ProjectVersion::class, 'idLocalProject', 'idLocalProject');
+        return $this->belongsTo(\App\Models\Project\ProjectVersion::class, 'idLocalProject', 'idLocalProject');
     }
 }
