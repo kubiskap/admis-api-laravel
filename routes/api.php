@@ -20,7 +20,8 @@ Route::prefix('v1')->group(function () {
         // Projects
         Route::get('projects/{id?}', [ProjectController::class, 'index']); // Get all projects or single project
         Route::post('projects/search', [ProjectController::class, 'search']); // Search projects with filters
-
+        Route::get('projects/{id}/editors-history', [ProjectController::class, 'editorsHistory']); // Get all versions of a project
+        Route::get('projects/{id}/log', [ProjectController::class, 'projectLog']); // Get all versions of a project
         // Users
         Route::apiResource('users', UserController::class); // Full CRUD operations for users
 

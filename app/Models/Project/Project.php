@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\{
     BelongsTo,
     BelongsToMany
 };
+use Illuminate\Support\Facades\DB;
 
 class Project extends Model
 {

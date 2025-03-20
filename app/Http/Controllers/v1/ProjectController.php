@@ -5,6 +5,7 @@ namespace App\Http\Controllers\v1;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProjectResource;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 /**
  * @OA\Tag(
@@ -87,7 +88,13 @@ class ProjectController extends Controller
             'financialSource',
             'phase',
             'areas',
-            'communications',
+            'communications' => function($query) {
+                $query->select([
+                    'rangeCommunications.*',
+                    'project2communication.*',
+                    DB::raw('ST_AsText(project2communication.allPoints) as allPoints')
+                ]);
+            },
             'companies',
             'contacts',
             'editorUser',
@@ -115,6 +122,13 @@ class ProjectController extends Controller
                 // Add contact type as direct property
                 $contact->type = $contact->pivot->contactType ? $contact->pivot->contactType->name : null;
             });
+
+            // Ensure proper UTF-8 encoding for text fields
+            $project->name = mb_convert_encoding($project->name, 'UTF-8', 'UTF-8');
+            $project->subject = mb_convert_encoding($project->subject, 'UTF-8', 'UTF-8');
+            if ($project->noteGinisOrAthena) {
+                $project->noteGinisOrAthena = mb_convert_encoding($project->noteGinisOrAthena, 'UTF-8', 'UTF-8');
+            }
         });
 
         return response()->json($projects);
@@ -298,7 +312,13 @@ class ProjectController extends Controller
             'editorUser:username,name',
             'financialSource:idFinSource,name',
             'areas:idArea,name',
-            'communications:idCommunication,name'
+            'communications' => function($query) {
+                $query->select([
+                    'rangeCommunications.*',
+                    'project2communication.*',
+                    DB::raw('ST_AsText(project2communication.allPoints) as allPoints')
+                ]);
+            }
         ]);
 
         // Get paginated results
@@ -306,4 +326,132 @@ class ProjectController extends Controller
 
         return response()->json($projects);
     }
+
+    /**
+     * @OA\Get(
+     *     path="/v1/projects/{id}/editors-history",
+     *     summary="Get distinct authors who edited the project with their latest edit date",
+     *     description="Retrieves a list of unique authors who have created versions of the project, including their latest edit date",
+     *     operationId="getProjectEditorsHistory",
+     *     tags={"Projects"},
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Project ID to retrieve editors for",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(
+     *                 type="object",
+     *                 @OA\Property(property="author", type="string"),
+     *                 @OA\Property(property="latest_date", type="string", format="date")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Project not found"
+     *     )
+     * )
+     */
+    public function editorsHistory(Request $request, $id)
+    {
+        // Check if project exists
+        $project = \App\Models\Project\Project::findOrFail($id);
+
+        // Get distinct authors with their latest edit date
+        $editors = \App\Models\Project\ProjectVersion::where('idProject', $id)
+            ->select('author as editor')
+            ->selectRaw('DATE(MAX(created)) as date')
+            ->groupBy('author')
+            ->orderBy('author')
+            ->get();
+
+        return response()->json($editors);
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/v1/projects/{id}/log",
+     *     summary="Get project action logs",
+     *     description="Retrieves a list of all actions performed on the project, including action type, user, and timestamp",
+     *     operationId="getProjectLog",
+     *     tags={"Projects"},
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Project ID to retrieve logs for",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         description="Number of items per page",
+     *         required=false,
+     *         @OA\Schema(type="integer", default=15)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="array",
+     *                 @OA\Items(
+     *                     type="object",
+     *                     @OA\Property(property="idAction", type="integer"),
+     *                     @OA\Property(property="project_name", type="string"),
+     *                     @OA\Property(property="created", type="string", format="date-time"),
+     *                     @OA\Property(property="action_type", type="string"),
+     *                     @OA\Property(property="username", type="string")
+     *                 )
+     *             ),
+     *             @OA\Property(property="meta", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Project not found"
+     *     )
+     * )
+     */
+    public function projectLog(Request $request, $id)
+    {
+        // Check if project exists
+        $project = \App\Models\Project\Project::findOrFail($id);
+
+        // Get paginated action logs for the project
+        $perPage = $request->query('per_page', 15);
+        
+        return \App\Models\Logs\ActionLog::join('projectVersions', 'actionsLogs.idLocalProject', '=', 'projectVersions.idLocalProject')
+            ->join('projects', 'projectVersions.idProject', '=', 'projects.idProject')
+            ->join('rangeActionTypes', 'actionsLogs.idActionType', '=', 'rangeActionTypes.idActionType')
+            ->where('projects.idProject', $id)
+            ->select([
+                'actionsLogs.idAction',
+                'actionsLogs.created',
+                'actionsLogs.username',
+                'rangeActionTypes.name as action_type'
+            ])
+            ->orderBy('actionsLogs.created', 'desc')
+            ->paginate($perPage);
+    }
 }
+
