@@ -167,6 +167,7 @@ class Project extends Model
             'gpsE1',
             'gpsE2',
             'allPoints',
+            'geometry',
             'comment'
         ]);
     }
