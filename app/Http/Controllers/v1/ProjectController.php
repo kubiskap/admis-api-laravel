@@ -66,6 +66,26 @@ class ProjectController extends Controller
      *     )
      * )
      */
+    private function spatialToGeoJSON($projects)
+    {
+        $projects->each(function ($project) {
+            $project->communications->each(function ($communication) {
+                if ($communication->pivot->allPoints) {
+                    try {
+                        $result = DB::select('SELECT ST_AsGeoJSON(allPoints) as geojson FROM project2communication WHERE idProject = ? AND idCommunication = ?', [
+                            $communication->pivot->idProject,
+                            $communication->pivot->idCommunication
+                        ])[0]->geojson;
+                        $communication->pivot->allPoints = json_decode($result);
+                    } catch (\Exception $e) {
+                        $communication->pivot->allPoints = null;
+                    }
+                }
+            });
+        });
+        return $projects;
+    }
+
     public function index(Request $request)
     {
         $perPage = $request->query('per_page', 15);
@@ -88,13 +108,7 @@ class ProjectController extends Controller
             'financialSource',
             'phase',
             'areas',
-            'communications' => function($query) {
-                $query->select([
-                    'rangeCommunications.*',
-                    'project2communication.*',
-                    DB::raw('ST_AsText(project2communication.allPoints) as allPoints')
-                ]);
-            },
+            'communications',
             'companies',
             'contacts',
             'editorUser',
@@ -130,6 +144,9 @@ class ProjectController extends Controller
                 $project->noteGinisOrAthena = mb_convert_encoding($project->noteGinisOrAthena, 'UTF-8', 'UTF-8');
             }
         });
+
+        // Convert spatial data
+        $projects = $this->spatialToGeoJSON($projects);
 
         return response()->json($projects);
     }
@@ -312,17 +329,14 @@ class ProjectController extends Controller
             'editorUser:username,name',
             'financialSource:idFinSource,name',
             'areas:idArea,name',
-            'communications' => function($query) {
-                $query->select([
-                    'rangeCommunications.*',
-                    'project2communication.*',
-                    DB::raw('ST_AsText(project2communication.allPoints) as allPoints')
-                ]);
-            }
+            'communications'
         ]);
 
         // Get paginated results
         $projects = $query->paginate($perPage);
+
+        // Convert spatial data
+        $projects = $this->spatialToGeoJSON($projects);
 
         return response()->json($projects);
     }
