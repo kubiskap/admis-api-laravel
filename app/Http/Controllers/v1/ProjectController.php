@@ -37,20 +37,6 @@ class ProjectController extends Controller
      *         required=false,
      *         @OA\Schema(type="integer", default=15)
      *     ),
-     *     @OA\Parameter(
-     *         name="sort_field",
-     *         in="query",
-     *         description="Field to sort by",
-     *         required=false,
-     *         @OA\Schema(type="string", default="idProject")
-     *     ),
-     *     @OA\Parameter(
-     *         name="sort_order",
-     *         in="query",
-     *         description="Sort order: 1 for ascending, -1 for descending",
-     *         required=false,
-     *         @OA\Schema(type="integer", default=1)
-     *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
@@ -66,25 +52,6 @@ class ProjectController extends Controller
      *     )
      * )
      */
-    private function spatialToGeoJSON($projects)
-    {
-        $projects->each(function ($project) {
-            $project->communications->each(function ($communication) {
-                if ($communication->pivot->allPoints) {
-                    try {
-                        $result = DB::select('SELECT ST_AsGeoJSON(allPoints) as geojson FROM project2communication WHERE idProject = ? AND idCommunication = ?', [
-                            $communication->pivot->idProject,
-                            $communication->pivot->idCommunication
-                        ])[0]->geojson;
-                        $communication->pivot->allPoints = json_decode($result);
-                    } catch (\Exception $e) {
-                        $communication->pivot->allPoints = null;
-                    }
-                }
-            });
-        });
-        return $projects;
-    }
 
     public function index(Request $request)
     {
@@ -95,11 +62,6 @@ class ProjectController extends Controller
         if ($request->route('id')) {
             $query->where('idProject', $request->route('id'));
         }
-
-        // Handle ordering
-        $sortField = $request->query('sort_field', 'idProject');
-        $sortOrder = (int) $request->query('sort_order', 1) === -1 ? 'desc' : 'asc';
-        $query->orderBy($sortField, $sortOrder);
 
         // Eager load relationships
         $query->with([
@@ -391,6 +353,20 @@ class ProjectController extends Controller
      *         required=false,
      *         @OA\Schema(type="integer", default=15)
      *     ),
+     *     @OA\Parameter(
+     *         name="sort_field",
+     *         in="query",
+     *         description="Field to sort by (idAction, created, username, action_type)",
+     *         required=false,
+     *         @OA\Schema(type="string", default="created")
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort_order",
+     *         in="query",
+     *         description="Sort order: 1 for ascending, -1 for descending",
+     *         required=false,
+     *         @OA\Schema(type="integer", default=-1)
+     *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
@@ -429,7 +405,7 @@ class ProjectController extends Controller
         // Get paginated action logs for the project
         $perPage = $request->query('per_page', 15);
         
-        return \App\Models\Logs\ActionLog::join('projectVersions', 'actionsLogs.idLocalProject', '=', 'projectVersions.idLocalProject')
+        $query = \App\Models\Logs\ActionLog::join('projectVersions', 'actionsLogs.idLocalProject', '=', 'projectVersions.idLocalProject')
             ->join('projects', 'projectVersions.idProject', '=', 'projects.idProject')
             ->join('rangeActionTypes', 'actionsLogs.idActionType', '=', 'rangeActionTypes.idActionType')
             ->where('projects.idProject', $id)
@@ -438,9 +414,25 @@ class ProjectController extends Controller
                 'actionsLogs.created',
                 'actionsLogs.username',
                 'rangeActionTypes.name as action_type'
-            ])
-            ->orderBy('actionsLogs.created', 'desc')
-            ->paginate($perPage);
+            ]);
+
+        // Handle sorting
+        $sortField = $request->query('sort_field', 'created');
+        $sortOrder = (int) $request->query('sort_order', -1) === -1 ? 'desc' : 'asc';
+        
+        // Map frontend field names to database column names
+        $fieldMap = [
+            'idAction' => 'actionsLogs.idAction',
+            'created' => 'actionsLogs.created',
+            'username' => 'actionsLogs.username',
+            'action_type' => 'rangeActionTypes.name'
+        ];
+
+        // Use mapped field name if it exists, otherwise use the original field name
+        $sortField = $fieldMap[$sortField] ?? $sortField;
+        $query->orderBy($sortField, $sortOrder);
+
+        return $query->paginate($perPage);
     }
 
     /**
