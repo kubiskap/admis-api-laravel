@@ -107,46 +107,21 @@ class ProjectController extends Controller
             'projectSubtype',
             'financialSource',
             'phase',
-            'areas',
-            'communications',
-            'companies',
-            'contacts',
             'editorUser',
             'authorUser'
         ]);
 
         // Get paginated results
         $projects = $query->paginate($perPage);
-            
-        // Transform company and contact relations with their types
-        $projects->each(function ($project) {
-            // Load with eager loading to begin with
-            $project->load(['companies', 'contacts']);
-            
-            // Transform companies to include type directly
-            $project->companies->each(function ($company) {
-                $company->pivot->load('companyType');
-                // Add company type as direct property
-                $company->type = $company->pivot->companyType ? $company->pivot->companyType->name : null;
-            });
-            
-            // Transform contacts to include type directly
-            $project->contacts->each(function ($contact) {
-                $contact->pivot->load('contactType');
-                // Add contact type as direct property
-                $contact->type = $contact->pivot->contactType ? $contact->pivot->contactType->name : null;
-            });
 
-            // Ensure proper UTF-8 encoding for text fields
+        // Ensure proper UTF-8 encoding for text fields
+        $projects->each(function ($project) {
             $project->name = mb_convert_encoding($project->name, 'UTF-8', 'UTF-8');
             $project->subject = mb_convert_encoding($project->subject, 'UTF-8', 'UTF-8');
             if ($project->noteGinisOrAthena) {
                 $project->noteGinisOrAthena = mb_convert_encoding($project->noteGinisOrAthena, 'UTF-8', 'UTF-8');
             }
         });
-
-        // Convert spatial data
-        $projects = $this->spatialToGeoJSON($projects);
 
         return response()->json($projects);
     }
@@ -466,6 +441,195 @@ class ProjectController extends Controller
             ])
             ->orderBy('actionsLogs.created', 'desc')
             ->paginate($perPage);
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/v1/projects/{id}/areas",
+     *     summary="Get project areas",
+     *     description="Retrieves all areas associated with a specific project",
+     *     operationId="getProjectAreas",
+     *     tags={"Projects"},
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Project ID to retrieve areas for",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Project not found"
+     *     )
+     * )
+     */
+    public function areas(Request $request, $id)
+    {
+        $project = \App\Models\Project\Project::findOrFail($id);
+        return response()->json($project->areas);
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/v1/projects/{id}/communications",
+     *     summary="Get project communications",
+     *     description="Retrieves all communications associated with a specific project",
+     *     operationId="getProjectCommunications",
+     *     tags={"Projects"},
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Project ID to retrieve communications for",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Project not found"
+     *     )
+     * )
+     */
+    public function communications(Request $request, $id)
+    {
+        $project = \App\Models\Project\Project::findOrFail($id);
+        $communications = $project->communications;
+        
+        // Convert spatial data
+        $communications->each(function ($communication) use ($project) {
+            if ($communication->pivot->allPoints) {
+                try {
+                    $result = DB::select('SELECT ST_AsGeoJSON(allPoints) as geojson FROM project2communication WHERE idProject = ? AND idCommunication = ?', [
+                        $project->idProject,
+                        $communication->pivot->idCommunication
+                    ])[0]->geojson;
+                    $communication->pivot->allPoints = json_decode($result);
+                } catch (\Exception $e) {
+                    $communication->pivot->allPoints = null;
+                }
+            }
+        });
+
+        return response()->json($communications);
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/v1/projects/{id}/companies",
+     *     summary="Get project companies",
+     *     description="Retrieves all companies associated with a specific project",
+     *     operationId="getProjectCompanies",
+     *     tags={"Projects"},
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Project ID to retrieve companies for",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Project not found"
+     *     )
+     * )
+     */
+    public function companies(Request $request, $id)
+    {
+        $project = \App\Models\Project\Project::findOrFail($id);
+        $companies = $project->companies;
+        
+        // Transform companies to include type directly
+        $companies->each(function ($company) {
+            $company->pivot->load('companyType');
+            $company->type = $company->pivot->companyType ? $company->pivot->companyType->name : null;
+        });
+
+        return response()->json($companies);
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/v1/projects/{id}/contacts",
+     *     summary="Get project contacts",
+     *     description="Retrieves all contacts associated with a specific project",
+     *     operationId="getProjectContacts",
+     *     tags={"Projects"},
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Project ID to retrieve contacts for",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Project not found"
+     *     )
+     * )
+     */
+    public function contacts(Request $request, $id)
+    {
+        $project = \App\Models\Project\Project::findOrFail($id);
+        $contacts = $project->contacts;
+        
+        // Transform contacts to include type directly
+        $contacts->each(function ($contact) {
+            $contact->pivot->load('contactType');
+            $contact->type = $contact->pivot->contactType ? $contact->pivot->contactType->name : null;
+        });
+
+        return response()->json($contacts);
     }
 }
 
