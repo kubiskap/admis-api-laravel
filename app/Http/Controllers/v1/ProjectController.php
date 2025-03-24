@@ -72,7 +72,9 @@ class ProjectController extends Controller
             'editorUser',
             'authorUser',
             'areas',
-            'communications'
+            'communications',
+            'contacts',
+            'companies',
         ]);
 
         // Get paginated results
