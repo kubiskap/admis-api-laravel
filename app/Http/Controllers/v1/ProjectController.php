@@ -272,9 +272,6 @@ class ProjectController extends Controller
         // Get paginated results
         $projects = $query->paginate($perPage);
 
-        // Convert spatial data
-        $projects = $this->spatialToGeoJSON($projects);
-
         return response()->json($projects);
     }
 
