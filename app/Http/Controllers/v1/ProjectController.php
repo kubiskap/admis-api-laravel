@@ -76,15 +76,6 @@ class ProjectController extends Controller
         // Get paginated results
         $projects = $query->paginate($perPage);
 
-        // Ensure proper UTF-8 encoding for text fields
-        $projects->each(function ($project) {
-            $project->name = mb_convert_encoding($project->name, 'UTF-8', 'UTF-8');
-            $project->subject = mb_convert_encoding($project->subject, 'UTF-8', 'UTF-8');
-            if ($project->noteGinisOrAthena) {
-                $project->noteGinisOrAthena = mb_convert_encoding($project->noteGinisOrAthena, 'UTF-8', 'UTF-8');
-            }
-        });
-
         return response()->json($projects);
     }
 
