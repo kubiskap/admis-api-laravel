@@ -25,6 +25,7 @@ Route::prefix('v1')->group(function () {
         Route::get('projects/{id}/communications', [ProjectController::class, 'communications']); // Get project communications
         Route::get('projects/{id}/companies', [ProjectController::class, 'companies']); // Get project companies
         Route::get('projects/{id}/contacts', [ProjectController::class, 'contacts']); // Get project contacts
+        
         // Users
         Route::apiResource('users', UserController::class); // Full CRUD operations for users
 
