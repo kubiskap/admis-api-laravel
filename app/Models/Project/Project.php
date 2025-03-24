@@ -5,10 +5,11 @@ namespace App\Models\Project;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\{
     BelongsTo,
-    BelongsToMany
+    BelongsToMany,
+    HasMany,
+    HasOne
 };
 use Illuminate\Support\Facades\DB;
-use App\Models\Pivots\ProjectCommunication;
 
 class Project extends Model
 {
@@ -112,6 +113,19 @@ class Project extends Model
     }
 
     /**
+     * projects.idFinSourcePD -> rangeFinancialSources.idFinSource
+     */
+    public function financialSourcePD(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\Enums\FinancialSource::class, 'idFinSourcePD', 'idFinSource');
+    }
+
+    public function priorityScore(): HasOne
+    {
+        return $this->hasOne(\App\Models\Views\ProjectsPriorityScore::class, 'idProject', 'idProject');
+    }
+
+    /**
      * Many projects belong to one Phase (rangePhases).
      * projects.idPhase -> rangePhases.idPhase
      */
@@ -150,6 +164,33 @@ class Project extends Model
     }
 
     /**
+     * A project can have one or more price entries in the 'prices' table.
+     * prices.idProject -> projects.idProject
+     */
+    public function prices(): HasMany
+    {
+        return $this->hasMany(\App\Models\Project\Price::class, 'idProject', 'idProject');
+    }
+
+    /**
+     * A project can have
+     * deadlines.idProject -> projects.idProject
+     */
+    public function deadlines(): HasMany
+    {
+        return $this->hasMany(\App\Models\Project\Deadline::class, 'idProject', 'idProject');
+    }
+
+    /**
+     * A project can have 
+     * projectVersions.idProject -> projects.idProject
+     */
+    public function versions(): HasMany
+    {
+        return $this->hasMany(\App\Models\Project\ProjectVersion::class, 'idProject', 'idProject');
+    }
+
+    /**
      * Link projects to 'communications' through project2communication (M:N pivot).
      * project2communication(idProject, idCommunication) → rangeCommunications(idCommunication)
      */
@@ -160,7 +201,7 @@ class Project extends Model
             'project2communication',
             'idProject',
             'idCommunication'
-        )->using(ProjectCommunication::class)
+        )->using(\App\Models\Pivots\ProjectCommunication::class)
          ->withPivot([
             'stationingFrom',
             'stationingTo',
@@ -302,7 +343,12 @@ class Project extends Model
             'editorUser:username,name',
             'financialSource:idFinSource,name',
             'areas:idArea,name',
-            'communications'
+            'communications',
+            'prices',
+            'versions',
+            'deadlines',
+            'companies',
+            'contacts'
         ]);
     }
 }

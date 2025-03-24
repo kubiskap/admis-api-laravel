@@ -8,6 +8,7 @@ use MatanYadaev\EloquentSpatial\Traits\HasSpatial;
 
 class ExternalApi extends Model
 {
+    use HasSpatial;
     /**
      * The table associated with the model.
      *

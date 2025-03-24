@@ -4,6 +4,7 @@ use App\Http\Controllers\v1\AuthController;
 use \App\Http\Controllers\v1\ProjectController;
 use App\Http\Controllers\v1\UserController;
 use App\Http\Controllers\v1\EnumViewController;
+use App\Http\Controllers\v1\ExternalApiController;
 
 use Illuminate\Support\Facades\Route;
 
@@ -35,5 +36,8 @@ Route::prefix('v1')->group(function () {
             ->where('type', 'enums|views');
         Route::delete('{type}/{model}/{id}', [EnumViewController::class, 'destroy'])
             ->where('type', 'enums|views');
-    });
+
+        Route::get('external', [ExternalApiController::class, 'index']);
+
+        });
 });
