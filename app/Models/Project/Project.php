@@ -205,4 +205,104 @@ class Project extends Model
     {
         return $this->belongsTo(\App\Models\Users\User::class, 'author', 'username');
     }
+
+    /**
+     * Apply filters to the query based on the request input.
+     */
+    public function scopeApplyFilters($query, array $filters): void
+    {
+        if (isset($filters['project'])) {
+            $projectFilters = $filters['project'];
+            if (!empty($projectFilters['id'])) {
+                $query->whereIn('idProject', (array)$projectFilters['id']);
+            }
+            if (!empty($projectFilters['editor'])) {
+                $query->whereIn('editor', (array)$projectFilters['editor']);
+            }
+            if (!empty($projectFilters['ou'])) {
+                $query->whereHas('editorUser', function ($q) use ($projectFilters) {
+                    $q->whereIn('idOu', (array)$projectFilters['ou']);
+                });
+            }
+            if (!empty($projectFilters['type'])) {
+                $query->whereIn('idProjectType', (array)$projectFilters['type']);
+            }
+            if (!empty($projectFilters['subtype'])) {
+                $query->whereIn('idProjectSubtype', (array)$projectFilters['subtype']);
+            }
+            if (!empty($projectFilters['phase'])) {
+                $query->whereIn('idPhase', (array)$projectFilters['phase']);
+            }
+            if (!empty($projectFilters['financialSource'])) {
+                $query->whereIn('idFinSource', (array)$projectFilters['financialSource']);
+            }
+        }
+
+        if (isset($filters['related'])) {
+            $relatedFilters = $filters['related'];
+            if (!empty($relatedFilters['communications'])) {
+                $query->whereHas('communications', function ($q) use ($relatedFilters) {
+                    $q->whereIn('project2communication.idCommunication', (array)$relatedFilters['communications']);
+                });
+            }
+            if (!empty($relatedFilters['areas'])) {
+                $query->whereHas('areas', function ($q) use ($relatedFilters) {
+                    $q->whereIn('project2area.idArea', (array)$relatedFilters['areas']);
+                });
+            }
+        }
+
+        if (isset($filters['companies'])) {
+            $companyFilters = $filters['companies'];
+            if (!empty($companyFilters['supervisor'])) {
+                $query->whereHas('companies', function ($q) use ($companyFilters) {
+                    $q->where('idCompanyType', 3)
+                      ->whereIn('project2company.idCompany', (array)$companyFilters['supervisor']);
+                });
+            }
+            if (!empty($companyFilters['builder'])) {
+                $query->whereHas('companies', function ($q) use ($companyFilters) {
+                    $q->where('idCompanyType', 2)
+                      ->whereIn('project2company.idCompany', (array)$companyFilters['builder']);
+                });
+            }
+            if (!empty($companyFilters['project'])) {
+                $query->whereHas('companies', function ($q) use ($companyFilters) {
+                    $q->where('idCompanyType', 1)
+                      ->whereIn('project2company.idCompany', (array)$companyFilters['project']);
+                });
+            }
+        }
+    }
+
+    /**
+     * Apply sorting to the query based on the request input.
+     */
+    public function scopeApplySorting($query, string $sortField, string $sortOrder): void
+    {
+        $fieldMap = [
+            'idProject' => 'idProject',
+            'created' => 'created',
+            'editor' => 'editor',
+            'name' => 'name',
+        ];
+
+        $sortField = $fieldMap[$sortField] ?? $sortField;
+        $query->orderBy($sortField, $sortOrder);
+    }
+
+    /**
+     * Define the relationships to be eager-loaded.
+     */
+    public function scopeWithRelationships($query): void
+    {
+        $query->with([
+            'projectType:idProjectType,name',
+            'phase:idPhase,name,phaseColor,phaseColorClass',
+            'editorUser:username,name',
+            'financialSource:idFinSource,name',
+            'areas:idArea,name',
+            'communications'
+        ]);
+    }
 }

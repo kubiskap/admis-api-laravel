@@ -164,6 +164,10 @@ class ProjectController extends Controller
     public function search(Request $request)
     {
         $perPage = $request->query('per_page', 15);
+        $filters = $request->input('filter', []);
+        $sortField = $request->query('sort_field', 'idProject');
+        $sortOrder = (int) $request->query('sort_order', 1) === -1 ? 'desc' : 'asc';
+
         $query = \App\Models\Project\Project::whereNull('deletedDate')
             ->select([
                 'idProject',
@@ -174,97 +178,11 @@ class ProjectController extends Controller
                 'idFinSource',
                 'idFinSourcePD',
                 'priorityAtts'
-            ]);
+            ])
+            ->applyFilters($filters)
+            ->applySorting($sortField, $sortOrder)
+            ->withRelationships();
 
-        // Handle JSON body filters
-        if ($request->has('filter')) {
-            $filters = $request->input('filter');
-
-            // Project basic info filters
-            if (isset($filters['project'])) {
-                $projectFilters = $filters['project'];
-                if (isset($projectFilters['id']) && !empty($projectFilters['id'])) {
-                    $query->whereIn('idProject', (array)$projectFilters['id']);
-                }
-                if (isset($projectFilters['editor']) && !empty($projectFilters['editor'])) {
-                    $query->whereIn('editor', (array)$projectFilters['editor']);
-                }
-
-                if (isset($projectFilters['ou']) && !empty($projectFilters['ou'])) {
-                    $query->whereHas('editorUser', function ($q) use ($projectFilters) {
-                        $q->whereIn('idOu', (array)$projectFilters['ou']);
-                    });
-                }
-
-                if (isset($projectFilters['type']) && !empty($projectFilters['type'])) {
-                    $query->whereIn('idProjectType', (array)$projectFilters['type']);
-                }
-                if (isset($projectFilters['subtype']) && !empty($projectFilters['subtype'])) {
-                    $query->whereIn('idProjectSubtype', (array)$projectFilters['subtype']);
-                }
-                if (isset($projectFilters['phase']) && !empty($projectFilters['phase'])) {
-                    $query->whereIn('idPhase', (array)$projectFilters['phase']);
-                }
-                if (isset($projectFilters['financialSource']) && !empty($projectFilters['financialSource'])) {
-                    $query->whereIn('idFinSource', (array)$projectFilters['financialSource']);
-                }
-            }
-
-            // Related entities filters
-            if (isset($filters['related'])) {
-                $relatedFilters = $filters['related'];
-                if (isset($relatedFilters['communications']) && !empty($relatedFilters['communications'])) {
-                    $query->whereHas('communications', function ($q) use ($relatedFilters) {
-                        $q->whereIn('project2communication.idCommunication', (array)$relatedFilters['communications']);
-                    });
-                }
-                if (isset($relatedFilters['areas']) && !empty($relatedFilters['areas'])) {
-                    $query->whereHas('areas', function ($q) use ($relatedFilters) {
-                        $q->whereIn('project2area.idArea', (array)$relatedFilters['areas']);
-                    });
-                }
-            }
-
-            // Company filters
-            if (isset($filters['companies'])) {
-                $companyFilters = $filters['companies'];
-                if (isset($companyFilters['supervisor']) && !empty($companyFilters['supervisor'])) {
-                    $query->whereHas('companies', function ($q) use ($companyFilters) {
-                        $q->where('idCompanyType', 3)
-                          ->whereIn('project2company.idCompany', (array)$companyFilters['supervisor']);
-                    });
-                }
-                if (isset($companyFilters['builder']) && !empty($companyFilters['builder'])) {
-                    $query->whereHas('companies', function ($q) use ($companyFilters) {
-                        $q->where('idCompanyType', 2)
-                          ->whereIn('project2company.idCompany', (array)$companyFilters['builder']);
-                    });
-                }
-                if (isset($companyFilters['project']) && !empty($companyFilters['project'])) {
-                    $query->whereHas('companies', function ($q) use ($companyFilters) {
-                        $q->where('idCompanyType', 1)
-                          ->whereIn('project2company.idCompany', (array)$companyFilters['project']);
-                    });
-                }
-            }
-        }
-
-        // Handle ordering
-        $sortField = $request->query('sort_field', 'idProject');
-        $sortOrder = (int) $request->query('sort_order', 1) === -1 ? 'desc' : 'asc';
-        $query->orderBy($sortField, $sortOrder);
-
-        // Eager load only the required relationships with specific attributes
-        $query->with([
-            'projectType:idProjectType,name',
-            'phase:idPhase,name,phaseColor,phaseColorClass',
-            'editorUser:username,name',
-            'financialSource:idFinSource,name',
-            'areas:idArea,name',
-            'communications'
-        ]);
-
-        // Get paginated results
         $projects = $query->paginate($perPage);
 
         return response()->json($projects);

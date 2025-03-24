@@ -60,7 +60,7 @@ class ProjectCommunication extends Pivot
     ];
 
     /**
-     * Create a new Eloquent query builder for the model.
+     * Override the default query builder by a SpatialBuilder.
      */
     public function newEloquentBuilder($query): SpatialBuilder
     {
