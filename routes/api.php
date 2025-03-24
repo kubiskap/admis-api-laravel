@@ -22,7 +22,6 @@ Route::prefix('v1')->group(function () {
         Route::post('projects/search', [ProjectController::class, 'search']); // Search projects with filters
         Route::get('projects/{id}/editors-history', [ProjectController::class, 'editorsHistory']); // Get all versions of a project
         Route::get('projects/{id}/log', [ProjectController::class, 'projectLog']); // Get all versions of a project
-        Route::get('projects/{id}/communications', [ProjectController::class, 'communications']); // Get project communications
         Route::get('projects/{id}/companies', [ProjectController::class, 'companies']); // Get project companies
         Route::get('projects/{id}/contacts', [ProjectController::class, 'contacts']); // Get project contacts
         

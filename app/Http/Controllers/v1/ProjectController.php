@@ -71,7 +71,8 @@ class ProjectController extends Controller
             'phase',
             'editorUser',
             'authorUser',
-            'areas'
+            'areas',
+            'communications'
         ]);
 
         // Get paginated results
@@ -422,47 +423,6 @@ class ProjectController extends Controller
         $query->orderBy($sortField, $sortOrder);
 
         return $query->paginate($perPage);
-    }
-
-    /**
-     * @OA\Get(
-     *     path="/v1/projects/{id}/communications",
-     *     summary="Get project communications",
-     *     description="Retrieves all communications associated with a specific project",
-     *     operationId="getProjectCommunications",
-     *     tags={"Projects"},
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         description="Project ID to retrieve communications for",
-     *         required=true,
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successful operation",
-     *         @OA\JsonContent(
-     *             type="array",
-     *             @OA\Items(type="object")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=401,
-     *         description="Unauthenticated"
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Project not found"
-     *     )
-     * )
-     */
-    public function communications(Request $request, $id)
-    {
-        $project = \App\Models\Project\Project::findOrFail($id);
-        $communications = $project->communications;
-              
-        return response()->json($communications);
     }
 
     /**
