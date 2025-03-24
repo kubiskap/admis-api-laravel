@@ -70,7 +70,8 @@ class ProjectController extends Controller
             'financialSource',
             'phase',
             'editorUser',
-            'authorUser'
+            'authorUser',
+            'areas'
         ]);
 
         // Get paginated results
@@ -425,45 +426,6 @@ class ProjectController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/v1/projects/{id}/areas",
-     *     summary="Get project areas",
-     *     description="Retrieves all areas associated with a specific project",
-     *     operationId="getProjectAreas",
-     *     tags={"Projects"},
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         description="Project ID to retrieve areas for",
-     *         required=true,
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successful operation",
-     *         @OA\JsonContent(
-     *             type="array",
-     *             @OA\Items(type="object")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=401,
-     *         description="Unauthenticated"
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Project not found"
-     *     )
-     * )
-     */
-    public function areas(Request $request, $id)
-    {
-        $project = \App\Models\Project\Project::findOrFail($id);
-        return response()->json($project->areas);
-    }
-
-    /**
-     * @OA\Get(
      *     path="/v1/projects/{id}/communications",
      *     summary="Get project communications",
      *     description="Retrieves all communications associated with a specific project",
@@ -499,22 +461,7 @@ class ProjectController extends Controller
     {
         $project = \App\Models\Project\Project::findOrFail($id);
         $communications = $project->communications;
-        
-        // Convert spatial data
-        $communications->each(function ($communication) use ($project) {
-            if ($communication->pivot->allPoints) {
-                try {
-                    $result = DB::select('SELECT ST_AsGeoJSON(allPoints) as geojson FROM project2communication WHERE idProject = ? AND idCommunication = ?', [
-                        $project->idProject,
-                        $communication->pivot->idCommunication
-                    ])[0]->geojson;
-                    $communication->pivot->allPoints = json_decode($result);
-                } catch (\Exception $e) {
-                    $communication->pivot->allPoints = null;
-                }
-            }
-        });
-
+              
         return response()->json($communications);
     }
 
@@ -560,6 +507,7 @@ class ProjectController extends Controller
         $companies->each(function ($company) {
             $company->pivot->load('companyType');
             $company->type = $company->pivot->companyType ? $company->pivot->companyType->name : null;
+            unset($company->pivot);
         });
 
         return response()->json($companies);
@@ -607,6 +555,7 @@ class ProjectController extends Controller
         $contacts->each(function ($contact) {
             $contact->pivot->load('contactType');
             $contact->type = $contact->pivot->contactType ? $contact->pivot->contactType->name : null;
+            unset($contact->pivot);
         });
 
         return response()->json($contacts);

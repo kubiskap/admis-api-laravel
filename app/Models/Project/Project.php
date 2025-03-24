@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\{
     BelongsToMany
 };
 use Illuminate\Support\Facades\DB;
+use App\Models\Pivots\ProjectCommunication;
 
 class Project extends Model
 {
@@ -159,7 +160,8 @@ class Project extends Model
             'project2communication',
             'idProject',
             'idCommunication'
-        )->withPivot([
+        )->using(ProjectCommunication::class)
+         ->withPivot([
             'stationingFrom',
             'stationingTo',
             'gpsN1',
