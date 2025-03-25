@@ -13,9 +13,6 @@ class ExternalApiController extends Controller
 
     public function index(Request $request)
     {
-
-        $perPage = $request->query('per_page', 15);
-        $page = $request->query('page', 1);
         
         $projects = Project::whereNull('deletedDate')
             ->with([
@@ -35,7 +32,7 @@ class ExternalApiController extends Controller
                 'deadlines',
                 'priorityScore'
             ])
-            ->paginate($perPage);
+            ->cursor();
 
         $rows = [];
         foreach ($projects as $project) {
