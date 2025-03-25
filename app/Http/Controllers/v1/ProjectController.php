@@ -53,35 +53,29 @@ class ProjectController extends Controller
      * )
      */
 
-    public function index(Request $request)
-    {
-        $perPage = $request->query('per_page', 15);
-        $query = \App\Models\Project\Project::whereNull('deletedDate');
-
-        // Handle single project by ID from URL parameter or query parameter
-        if ($request->route('id')) {
-            $query->where('idProject', $request->route('id'));
-        }
-
-        // Eager load relationships
-        $query->with([
-            'projectType',
-            'projectSubtype',
-            'financialSource',
-            'phase',
-            'editorUser',
-            'authorUser',
-            'areas',
-            'communications',
-            'contacts',
-            'companies',
-        ]);
-
-        // Get paginated results
-        $projects = $query->paginate($perPage);
-
-        return response()->json($projects);
-    }
+     public function show($id)
+     {
+         $project = \App\Models\Project\Project::where('idProject', $id)
+             ->whereNull('deletedDate')
+             ->with([
+                 'projectType',
+                 'projectSubtype',
+                 'financialSource',
+                 'financialSourcePD',  // if you want it
+                 'phase',
+                 'editorUser',
+                 'authorUser',
+                 'areas',
+                 'prices',
+                 'deadlines',
+                 'communications',
+                 'contacts',
+                 'companies',
+             ])
+             ->firstOrFail();
+     
+         return new ProjectResource($project);
+     }
 
     /**
      * @OA\Post(
@@ -163,29 +157,100 @@ class ProjectController extends Controller
      */
     public function search(Request $request)
     {
-        $perPage = $request->query('per_page', 15);
+        $perPage = $request->input('per_page', 15);
+        $page = $request->input('page', 1);
         $filters = $request->input('filter', []);
         $sortField = $request->query('sort_field', 'idProject');
         $sortOrder = (int) $request->query('sort_order', 1) === -1 ? 'desc' : 'asc';
 
         $query = \App\Models\Project\Project::whereNull('deletedDate')
-            ->select([
-                'idProject',
-                'name',
-                'idProjectType',
-                'idPhase',
-                'editor',
-                'idFinSource',
-                'idFinSourcePD',
-                'priorityAtts'
-            ])
-            ->applyFilters($filters)
-            ->applySorting($sortField, $sortOrder)
-            ->withRelationships();
+             ->with([
+                 'projectType',
+                 'projectSubtype',
+                 'financialSource',
+                 'financialSourcePD',  // if you want it
+                 'phase',
+                 'editorUser',
+                 'authorUser',
+                 'areas',
+                 'prices',
+                 'deadlines',
+                 'communications',
+                 'contacts',
+                 'companies',
+             ]);
 
-        $projects = $query->paginate($perPage);
+        // Apply filters
+        if (isset($filters['project'])) {
+            $projectFilters = $filters['project'];
+            if (!empty($projectFilters['id'])) {
+                $query->whereIn('idProject', (array)$projectFilters['id']);
+            }
+            if (!empty($projectFilters['editor'])) {
+                $query->whereIn('editor', (array)$projectFilters['editor']);
+            }
+            if (!empty($projectFilters['ou'])) {
+                $query->whereHas('editorUser', function ($q) use ($projectFilters) {
+                    $q->whereIn('idOu', (array)$projectFilters['ou']);
+                });
+            }
+            if (!empty($projectFilters['type'])) {
+                $query->whereIn('idProjectType', (array)$projectFilters['type']);
+            }
+            if (!empty($projectFilters['subtype'])) {
+                $query->whereIn('idProjectSubtype', (array)$projectFilters['subtype']);
+            }
+            if (!empty($projectFilters['phase'])) {
+                $query->whereIn('idPhase', (array)$projectFilters['phase']);
+            }
+            if (!empty($projectFilters['financialSource'])) {
+                $query->whereIn('idFinSource', (array)$projectFilters['financialSource']);
+            }
+        }
 
-        return response()->json($projects);
+        if (isset($filters['related'])) {
+            $relatedFilters = $filters['related'];
+            if (!empty($relatedFilters['communications'])) {
+                $query->whereHas('communications', function ($q) use ($relatedFilters) {
+                    $q->whereIn('project2communication.idCommunication', (array)$relatedFilters['communications']);
+                });
+            }
+            if (!empty($relatedFilters['areas'])) {
+                $query->whereHas('areas', function ($q) use ($relatedFilters) {
+                    $q->whereIn('project2area.idArea', (array)$relatedFilters['areas']);
+                });
+            }
+        }
+
+        if (isset($filters['companies'])) {
+            $companyFilters = $filters['companies'];
+            if (!empty($companyFilters['supervisor'])) {
+                $query->whereHas('companies', function ($q) use ($companyFilters) {
+                    $q->where('idCompanyType', 3)
+                      ->whereIn('project2company.idCompany', (array)$companyFilters['supervisor']);
+                });
+            }
+            if (!empty($companyFilters['builder'])) {
+                $query->whereHas('companies', function ($q) use ($companyFilters) {
+                    $q->where('idCompanyType', 2)
+                      ->whereIn('project2company.idCompany', (array)$companyFilters['builder']);
+                });
+            }
+            if (!empty($companyFilters['project'])) {
+                $query->whereHas('companies', function ($q) use ($companyFilters) {
+                    $q->where('idCompanyType', 1)
+                      ->whereIn('project2company.idCompany', (array)$companyFilters['project']);
+                });
+            }
+        }
+
+        // Apply sorting
+        $query->orderBy($sortField, $sortOrder);
+
+        // Paginate results
+        $projects = $query->paginate($perPage, ['*'], 'page', $page);
+
+        return ProjectResource::collection($projects);
     }
 
     /**
@@ -238,7 +303,7 @@ class ProjectController extends Controller
             ->orderBy('author')
             ->get();
 
-        return response()->json($editors);
+        return response()->json($this->formatEditorsHistory($editors));
     }
 
     /**
@@ -342,7 +407,9 @@ class ProjectController extends Controller
         $sortField = $fieldMap[$sortField] ?? $sortField;
         $query->orderBy($sortField, $sortOrder);
 
-        return $query->paginate($perPage);
+        $logs = $query->paginate($perPage);
+
+        return response()->json($this->formatProjectLog($logs));
     }
 
     /**
@@ -440,5 +507,37 @@ class ProjectController extends Controller
 
         return response()->json($contacts);
     }
-}
 
+    protected function formatEditorsHistory($editors)
+    {
+        return $editors->map(function ($editor) {
+            return [
+                'editor' => $editor->editor,
+                'latest_date' => $editor->date,
+            ];
+        });
+    }
+
+    protected function formatProjectLog($logs)
+    {
+        return [
+            'data' => $logs->map(function ($log) {
+                return [
+                    'idAction' => $log->idAction,
+                    'created' => $log->created,
+                    'username' => $log->username,
+                    'action_type' => $log->action_type,
+                ];
+            }),
+            'meta' => [
+                'current_page' => $logs->currentPage(),
+                'from' => $logs->firstItem(),
+                'last_page' => $logs->lastPage(),
+                'path' => $logs->path(),
+                'per_page' => $logs->perPage(),
+                'to' => $logs->lastItem(),
+                'total' => $logs->total(),
+            ],
+        ];
+    }
+}
