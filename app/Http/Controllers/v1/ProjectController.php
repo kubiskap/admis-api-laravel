@@ -61,7 +61,7 @@ class ProjectController extends Controller
                  'projectType',
                  'projectSubtype',
                  'financialSource',
-                 'financialSourcePD',  // if you want it
+                 'financialSourcePD',
                  'phase',
                  'editorUser',
                  'authorUser',
@@ -157,8 +157,8 @@ class ProjectController extends Controller
      */
     public function search(Request $request)
     {
-        $perPage = $request->input('per_page', 15);
-        $page = $request->input('page', 1);
+        $perPage = (int) $request->input('per_page', 15); // Ensure per_page is an integer
+        $page = (int) $request->input('page', 1); // Ensure page is an integer
         $filters = $request->input('filter', []);
         $sortField = $request->query('sort_field', 'idProject');
         $sortOrder = (int) $request->query('sort_order', 1) === -1 ? 'desc' : 'asc';
@@ -168,7 +168,7 @@ class ProjectController extends Controller
                  'projectType',
                  'projectSubtype',
                  'financialSource',
-                 'financialSourcePD',  // if you want it
+                 'financialSourcePD',
                  'phase',
                  'editorUser',
                  'authorUser',
@@ -181,7 +181,7 @@ class ProjectController extends Controller
              ]);
 
         // Apply filters
-        if (isset($filters['project'])) {
+        if (!empty($filters['project'])) {
             $projectFilters = $filters['project'];
             if (!empty($projectFilters['id'])) {
                 $query->whereIn('idProject', (array)$projectFilters['id']);
