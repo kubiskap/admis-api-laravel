@@ -36,4 +36,9 @@ class PriceSubtype extends Model
         'name',
         'hidden'
     ];
+
+    public function priceType()
+    {
+        return $this->belongsTo(PriceType::class, 'idPriceSubtype', 'idPriceSubtypes');
+    }
 }

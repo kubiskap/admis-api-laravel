@@ -37,4 +37,17 @@ class Warranty extends Model
         'idWarrantyType',
         'hidden'
     ];
+
+    /**
+     * The attributes that should be cast to native types.
+     */
+    protected $casts = [
+        'period' => 'integer',
+        'hidden' => 'boolean',
+    ];
+
+    public function warrantyType()
+    {
+        return $this->belongsTo(WarrantyType::class, 'idWarrantyType', 'idWarrantyType');
+    }
 }

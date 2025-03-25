@@ -39,4 +39,9 @@ class PriceType extends Model
         'idPriceSubtype',
         'ordering'
     ];
+
+    public function priceSubtype()
+    {
+        return $this->hasOne(PriceSubtype::class, 'idPriceSubtypes', 'idPriceSubtype');
+    }
 }

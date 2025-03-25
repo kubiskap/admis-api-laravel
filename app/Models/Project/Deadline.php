@@ -12,8 +12,15 @@ class Deadline extends Model
     protected $fillable = [
         'idProject',
         'idDeadlineType',
-        'deadlineDate',
-        'description',
+        'value',
+        'note',
+    ];
+
+    public $timestamps = false;
+
+    public $casts = [
+        'value' => 'date',
+        'inserted'=> 'date',
     ];
 
     public function project(): BelongsTo
