@@ -160,8 +160,8 @@ class ProjectController extends Controller
         $perPage = (int) $request->input('per_page', 15); // Ensure per_page is an integer
         $page = (int) $request->input('page', 1); // Ensure page is an integer
         $filters = $request->input('filter', []);
-        $sortField = $request->query('sort_field', 'idProject');
-        $sortOrder = (int) $request->query('sort_order', 1) === -1 ? 'desc' : 'asc';
+        $sortField = $request->input('sort_field', 'idProject');
+        $sortOrder = (int) $request->input('sort_order', 1) === -1 ? 'desc' : 'asc';
 
         $query = \App\Models\Project\Project::whereNull('deletedDate')
              ->with([
