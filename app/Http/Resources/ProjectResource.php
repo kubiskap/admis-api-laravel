@@ -6,6 +6,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class ProjectResource extends JsonResource
 {
+    
     /**
      * Transform the resource into an array.
      *
@@ -17,9 +18,11 @@ class ProjectResource extends JsonResource
         return [
             'id' => $this->idProject,
             'name' => $this->name,
-            'type' => $this->idProjectType,
+            'type' => $this->projectType->name,
+            'subtype' => $this->projectSubtype->name,
             'phase' => $this->whenLoaded('phase', function() {
                 return [
+                    'id' => $this->phase->idPhase,
                     'name' => $this->phase->name,
                     'color' => $this->phase->phaseColor,
                     'color_class' => $this->phase->phaseColorClass,
@@ -28,12 +31,6 @@ class ProjectResource extends JsonResource
             'editor' => $this->editorUser->username,
             'author' => $this->authorUser->username,
             'priority_attributes' => $this->priorityAtts,
-            'project_type' => $this->whenLoaded('projectType', function() {
-                return $this->projectType->name;
-            }),
-            'project_subtype' => $this->whenLoaded('projectSubtype', function() {
-                return $this->projectSubtype->name;
-            }),
             'financial_source' => $this->whenLoaded('financialSource', function() {
                 return $this->financialSource->name;
             }),
