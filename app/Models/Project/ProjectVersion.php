@@ -51,6 +51,7 @@ class ProjectVersion extends Model
     protected $casts = [
         'created' => 'datetime',
         'validTo' => 'datetime',
+        'historyDump' => 'json',
     ];
 
     /************************************************
@@ -64,6 +65,14 @@ class ProjectVersion extends Model
     public function project(): BelongsTo
     {
         return $this->belongsTo(\App\Models\Project\Project::class, 'idProject', 'idProject');
+    }
+
+    /**
+     * Each ProjectVersion can have many ActionLogs
+     */
+    public function actionLogs(): HasMany
+    {
+        return $this->hasMany(\App\Models\ActionLog::class, 'idLocalProject', 'idLocalProject');
     }
 
     /**

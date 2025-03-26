@@ -7,7 +7,8 @@ use Illuminate\Database\Eloquent\Relations\{
     BelongsTo,
     BelongsToMany,
     HasMany,
-    HasOne
+    HasManyThrough,
+    HasOne,
 };
 use Illuminate\Support\Facades\DB;
 
@@ -182,12 +183,28 @@ class Project extends Model
     }
 
     /**
-     * A project can have 
+     * A project can have multiple versions.
      * projectVersions.idProject -> projects.idProject
      */
     public function versions(): HasMany
     {
         return $this->hasMany(\App\Models\Project\ProjectVersion::class, 'idProject', 'idProject');
+    }
+
+    /** 
+     * A project can have many actions in the log through its versions
+     * actionsLogs.idLocalProject -> projectVersions.idLocalProject -> projectVersions.idProject -> projects.idProject
+     */
+    public function actions(): HasManyThrough
+    {
+        return $this->hasManyThrough(
+            \App\Models\Logs\ActionLog::class,
+            \App\Models\Project\ProjectVersion::class,
+            'idProject',
+            'idLocalProject',
+            'idProject',
+            'idLocalProject'
+        );
     }
 
     /**
