@@ -19,7 +19,7 @@ class ProjectResource extends JsonResource
             'id' => $this->idProject,
             'name' => $this->name,
             'type' => $this->projectType->name,
-            'subtype' => $this->projectSubtype->name,
+            'subtype' => $this->projectSubtype?->name,
             'phase' => $this->whenLoaded('phase', function() {
                 return [
                     'id' => $this->phase->idPhase,
@@ -58,7 +58,10 @@ class ProjectResource extends JsonResource
                         'name' => $contact->name,
                         'phone' => $contact->phone,
                         'email' => $contact->email,
-                        'type' => $contact->pivot->contactType->name,
+                        'type' => [
+                            'id' => $contact->pivot->contactType->idContactType,
+                            'name' =>$contact->pivot->contactType->name,
+                        ],
                     ];
                 });
             }),
@@ -71,7 +74,10 @@ class ProjectResource extends JsonResource
                         'ic' => $company->ic,
                         'dic' => $company->dic,
                         'www' => $company->www,
-                        'type' => $company->pivot->companyType->name,
+                        'type' => [
+                            'id' => $company->pivot->companyType->name,
+                            'name' => $company->pivot->companyType->name,
+                        ],
                     ];
                 });
             }),
@@ -98,6 +104,42 @@ class ProjectResource extends JsonResource
                     ];
                 });
             }),
+            'suspensions' => $this->whenLoaded('suspensions', function() {
+                return $this->suspensions->map(function($suspension) {
+                    return [
+                        'source' => $suspension->suspensionSource->name,
+                        'reason' => $suspension->suspensionReason->name,
+                        'comment' => $suspension->comment,
+                        'start' => $suspension->dateFrom,
+                        'end' => $suspension->dateTo,
+                        'author' => $suspension->username
+                    ];
+                });
+            }),
+            'tasks' => $this->whenLoaded('tasks', function () {
+                return $this->tasks->where('deleted', null)->map(function($task) {
+                    return [
+                        'author' => $task->createdBy,
+                        'date' => $task->created,
+                        'deadline' => $task->latestVersion->deadlineTo,
+                        'name' => $task->latestVersion->name,
+                        'description' => $task->latestVersion->description,
+                        'status' => [
+                            'id' => $task->latestVersion->status->idTaskStatus,
+                            'name' => $task->latestVersion->status->name,
+                            'color' => $task->latestVersion->status->statusColor,
+                            'color_class' => $task->latestVersion->status->statusClass,
+                        ],
+                        'reactions' => $task->reactions?->map(function($reaction) {
+                            return [
+                                'author' => $reaction->createdBy,
+                                'date' => $reaction->created,
+                                'content' => $reaction->content,
+                            ];
+                        }),
+                    ];
+                });
+            })
         ];
     }
 }

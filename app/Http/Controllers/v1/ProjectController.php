@@ -63,6 +63,8 @@ class ProjectController extends Controller
             'prices',
             'deadlines',
             'communications',
+            'suspensions',
+            'tasks',
             'contacts',
             'companies',
         ])
@@ -292,7 +294,7 @@ class ProjectController extends Controller
             ->orderBy('author')
             ->get();
 
-        return response()->json($editors)->wrap('data');
+        return response()->json($editors);
     }
 
     /**
@@ -369,12 +371,32 @@ class ProjectController extends Controller
         $query = $project->actions();
 
         // Apply sorting
-        $sortField = $request->query('sort_field', 'created');
-        $sortOrder = (int) $request->query('sort_order', -1) === -1 ? 'desc' : 'asc';
+        $sortField = $request->query('sort_field', 'date');
+        $sortOrder = (int) $request->query('sort_order', 1) === -1 ? 'desc' : 'asc';
         
+        // Translate database column names to field names
+        $fieldMap = [
+            'date'            => 'actionsLogs.created',
+            'user.username'   => 'actionsLogs.username',
+            'action'          => 'rangeActionTypes.name',
+            'project.name'    => 'projects.name',
+        ];
+        $dbColumn = $fieldMap[$sortField] ?? 'actionsLogs.created';
+        
+        // Join tables for sorting
+        if ($sortField === 'user.username') {
+            // join users to get `users.username`
+            $query->leftJoin('users', 'actionsLogs.username', '=', 'users.username');
+        } elseif ($sortField === 'action') {
+            // join rangeActionTypes to get `rangeActionTypes.name`
+            $query->leftJoin('rangeActionTypes', 'actionsLogs.idActionType', '=', 'rangeActionTypes.idActionType');
+        } elseif ($sortField === 'project.name') {
+            // join projectVersions -> projects to get `projects.name`
+            $query->leftJoin('projectVersions', 'actionsLogs.idLocalProject', '=', 'projectVersions.idLocalProject')
+                  ->leftJoin('projects', 'projectVersions.idProject', '=', 'projects.idProject');
+        }
 
-        
-        $query->orderBy($sortField, $sortOrder);
+        $query->orderBy($dbColumn, $sortOrder);
 
         // Apply pagination
         $perPage = (int) $request->query('per_page', 15);
