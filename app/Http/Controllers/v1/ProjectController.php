@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\v1;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\ProjectResource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+
+use App\Http\Resources\ProjectResource;
+use App\Http\Resources\ActionLogResource;
+use App\Models\Project\Project;
 
 /**
  * @OA\Tag(
@@ -17,25 +20,18 @@ class ProjectController extends Controller
 {
     /**
      * @OA\Get(
-     *     path="/v1/projects/{id?}",
-     *     summary="Get all projects or a single project",
-     *     description="Retrieves a paginated list of all projects or a single project if ID is provided",
-     *     operationId="getProjects",
+     *     path="/v1/projects/{id}",
+     *     summary="Get project details",
+     *     description="Retrieves details of a single project by ID",
+     *     operationId="show",
      *     tags={"Projects"},
      *     security={{"bearerAuth": {}}},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
      *         description="Project ID to retrieve a single project",
-     *         required=false,
+     *         required=true,
      *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\Parameter(
-     *         name="per_page",
-     *         in="query",
-     *         description="Number of items per page",
-     *         required=false,
-     *         @OA\Schema(type="integer", default=15)
      *     ),
      *     @OA\Response(
      *         response=200,
@@ -54,28 +50,27 @@ class ProjectController extends Controller
      */
 
      public function show($id)
-     {
-         $project = \App\Models\Project\Project::where('idProject', $id)
-             ->whereNull('deletedDate')
-             ->with([
-                 'projectType',
-                 'projectSubtype',
-                 'financialSource',
-                 'financialSourcePD',
-                 'phase',
-                 'editorUser',
-                 'authorUser',
-                 'areas',
-                 'prices',
-                 'deadlines',
-                 'communications',
-                 'contacts',
-                 'companies',
-             ])
-             ->firstOrFail();
-     
-         return new ProjectResource($project);
-     }
+    {
+        $project = Project::with([
+            'projectType',
+            'projectSubtype',
+            'financialSource',
+            'financialSourcePD',
+            'phase',
+            'editorUser',
+            'authorUser',
+            'areas',
+            'prices',
+            'deadlines',
+            'communications',
+            'contacts',
+            'companies',
+        ])
+        ->findOrFail($id);
+
+        return new ProjectResource($project);
+    }
+
 
     /**
      * @OA\Post(
@@ -163,21 +158,15 @@ class ProjectController extends Controller
         $sortField = $request->input('sort_field', 'idProject');
         $sortOrder = (int) $request->input('sort_order', 1) === -1 ? 'desc' : 'asc';
 
-        $query = \App\Models\Project\Project::whereNull('deletedDate')
+        $query = Project::whereNull('deletedDate')
              ->with([
                  'projectType',
                  'projectSubtype',
                  'financialSource',
-                 'financialSourcePD',
                  'phase',
                  'editorUser',
-                 'authorUser',
                  'areas',
-                 'prices',
-                 'deadlines',
                  'communications',
-                 'contacts',
-                 'companies',
              ]);
 
         // Apply filters
@@ -296,14 +285,14 @@ class ProjectController extends Controller
         $project = \App\Models\Project\Project::findOrFail($id);
 
         // Get distinct authors with their latest edit date
-        $editors = \App\Models\Project\ProjectVersion::where('idProject', $id)
+        $editors = $project->versions()
             ->select('author as editor')
-            ->selectRaw('DATE(MAX(created)) as date')
+            ->selectRaw('MAX(created) as date')
             ->groupBy('author')
             ->orderBy('author')
             ->get();
 
-        return response()->json($this->formatEditorsHistory($editors));
+        return response()->json($editors)->wrap('data');
     }
 
     /**
@@ -375,169 +364,23 @@ class ProjectController extends Controller
     public function projectLog(Request $request, $id)
     {
         // Check if project exists
-        $project = \App\Models\Project\Project::findOrFail($id);
+        $project = Project::findOrFail($id);
 
-        // Get paginated action logs for the project
-        $perPage = $request->query('per_page', 15);
-        
-        $query = \App\Models\Logs\ActionLog::join('projectVersions', 'actionsLogs.idLocalProject', '=', 'projectVersions.idLocalProject')
-            ->join('projects', 'projectVersions.idProject', '=', 'projects.idProject')
-            ->join('rangeActionTypes', 'actionsLogs.idActionType', '=', 'rangeActionTypes.idActionType')
-            ->where('projects.idProject', $id)
-            ->select([
-                'actionsLogs.idAction',
-                'actionsLogs.created',
-                'actionsLogs.username',
-                'rangeActionTypes.name as action_type'
-            ]);
+        $query = $project->actions();
 
-        // Handle sorting
+        // Apply sorting
         $sortField = $request->query('sort_field', 'created');
         $sortOrder = (int) $request->query('sort_order', -1) === -1 ? 'desc' : 'asc';
         
-        // Map frontend field names to database column names
-        $fieldMap = [
-            'idAction' => 'actionsLogs.idAction',
-            'created' => 'actionsLogs.created',
-            'username' => 'actionsLogs.username',
-            'action_type' => 'rangeActionTypes.name'
-        ];
 
-        // Use mapped field name if it exists, otherwise use the original field name
-        $sortField = $fieldMap[$sortField] ?? $sortField;
+        
         $query->orderBy($sortField, $sortOrder);
 
+        // Apply pagination
+        $perPage = (int) $request->query('per_page', 15);
         $logs = $query->paginate($perPage);
 
-        return response()->json($this->formatProjectLog($logs));
-    }
-
-    /**
-     * @OA\Get(
-     *     path="/v1/projects/{id}/companies",
-     *     summary="Get project companies",
-     *     description="Retrieves all companies associated with a specific project",
-     *     operationId="getProjectCompanies",
-     *     tags={"Projects"},
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         description="Project ID to retrieve companies for",
-     *         required=true,
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successful operation",
-     *         @OA\JsonContent(
-     *             type="array",
-     *             @OA\Items(type="object")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=401,
-     *         description="Unauthenticated"
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Project not found"
-     *     )
-     * )
-     */
-    public function companies(Request $request, $id)
-    {
-        $project = \App\Models\Project\Project::findOrFail($id);
-        $companies = $project->companies;
-        
-        // Transform companies to include type directly
-        $companies->each(function ($company) {
-            $company->pivot->load('companyType');
-            $company->type = $company->pivot->companyType ? $company->pivot->companyType->name : null;
-            unset($company->pivot);
-        });
-
-        return response()->json($companies);
-    }
-
-    /**
-     * @OA\Get(
-     *     path="/v1/projects/{id}/contacts",
-     *     summary="Get project contacts",
-     *     description="Retrieves all contacts associated with a specific project",
-     *     operationId="getProjectContacts",
-     *     tags={"Projects"},
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         description="Project ID to retrieve contacts for",
-     *         required=true,
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successful operation",
-     *         @OA\JsonContent(
-     *             type="array",
-     *             @OA\Items(type="object")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=401,
-     *         description="Unauthenticated"
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Project not found"
-     *     )
-     * )
-     */
-    public function contacts(Request $request, $id)
-    {
-        $project = \App\Models\Project\Project::findOrFail($id);
-        $contacts = $project->contacts;
-        
-        // Transform contacts to include type directly
-        $contacts->each(function ($contact) {
-            $contact->pivot->load('contactType');
-            $contact->type = $contact->pivot->contactType ? $contact->pivot->contactType->name : null;
-            unset($contact->pivot);
-        });
-
-        return response()->json($contacts);
-    }
-
-    protected function formatEditorsHistory($editors)
-    {
-        return $editors->map(function ($editor) {
-            return [
-                'editor' => $editor->editor,
-                'latest_date' => $editor->date,
-            ];
-        });
-    }
-
-    protected function formatProjectLog($logs)
-    {
-        return [
-            'data' => $logs->map(function ($log) {
-                return [
-                    'idAction' => $log->idAction,
-                    'created' => $log->created,
-                    'username' => $log->username,
-                    'action_type' => $log->action_type,
-                ];
-            }),
-            'meta' => [
-                'current_page' => $logs->currentPage(),
-                'from' => $logs->firstItem(),
-                'last_page' => $logs->lastPage(),
-                'path' => $logs->path(),
-                'per_page' => $logs->perPage(),
-                'to' => $logs->lastItem(),
-                'total' => $logs->total(),
-            ],
-        ];
+        // Return resource
+        return ActionLogResource::collection($logs);
     }
 }

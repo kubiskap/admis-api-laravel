@@ -6,7 +6,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class ProjectResource extends JsonResource
 {
-    
+
     /**
      * Transform the resource into an array.
      *
@@ -28,8 +28,18 @@ class ProjectResource extends JsonResource
                     'color_class' => $this->phase->phaseColorClass,
                 ];
             }),
-            'editor' => $this->editorUser->username,
-            'author' => $this->authorUser->username,
+            'editor' => $this->whenLoaded('editorUser', function() {
+                return [
+                    'username' => $this->editorUser->username,
+                    'name' => $this->editorUser->name,
+                ];
+            }),
+            'author' => $this->whenLoaded('authorUser', function() {
+                return [
+                    'username' => $this->authorUser->username,
+                    'name' => $this->authorUser->name,
+                ];
+            }),
             'priority_attributes' => $this->priorityAtts,
             'financial_source' => $this->whenLoaded('financialSource', function() {
                 return $this->financialSource->name;
@@ -40,24 +50,11 @@ class ProjectResource extends JsonResource
             'areas' => $this->whenLoaded('areas', function() {
                 return $this->areas->pluck('name');
             }),
-            'communications' => $this->whenLoaded('communications', function() {
-                return $this->communications->map(function($comm) {
-                    return [
-                        'name' => $comm->name,
-                        'stationing_from' => $comm->pivot->stationingFrom,
-                        'stationing_to' => $comm->pivot->stationingTo,
-                        'gps_n1' => $comm->pivot->gpsN1,
-                        'gps_n2' => $comm->pivot->gpsN2,
-                        'gps_e1' => $comm->pivot->gpsE1,
-                        'gps_e2' => $comm->pivot->gpsE2,
-                        'all_points' => $comm->pivot->allPoints,
-                        'geometry' => $comm->pivot->geometry,
-                    ];
-                });
-            }),
+            'communications' => $this->whenLoaded('communications', CommunicationResource::collection($this->communications)),
             'contacts' => $this->whenLoaded('contacts', function() {
                 return $this->contacts->map(function($contact) {
                     return [
+                        'id' => $contact->idContact,
                         'name' => $contact->name,
                         'phone' => $contact->phone,
                         'email' => $contact->email,
