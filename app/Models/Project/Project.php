@@ -114,6 +114,7 @@ class Project extends Model
     }
 
     /**
+     * Many projects belong to one Project Documentatio FinancialSource
      * projects.idFinSourcePD -> rangeFinancialSources.idFinSource
      */
     public function financialSourcePD(): BelongsTo
@@ -165,6 +166,15 @@ class Project extends Model
     }
 
     /**
+     * A project can have one or more tasks in the 'tasks' table.
+     * tasks.relatedToProjectId -> projects.idProject
+     */
+    public function tasks(): HasMany
+    {
+        return $this->hasMany(\App\Models\Tasks\Task::class, 'relatedToProjectId', 'idProject');
+    }
+    
+    /**
      * A project can have one or more price entries in the 'prices' table.
      * prices.idProject -> projects.idProject
      */
@@ -174,7 +184,7 @@ class Project extends Model
     }
 
     /**
-     * A project can have
+     * A project can have many deadlines.
      * deadlines.idProject -> projects.idProject
      */
     public function deadlines(): HasMany
@@ -189,6 +199,15 @@ class Project extends Model
     public function versions(): HasMany
     {
         return $this->hasMany(\App\Models\Project\ProjectVersion::class, 'idProject', 'idProject');
+    }
+
+    /**
+     * A project can have multiple suspensions.
+     * suspensions.idProject -> projects.idProject
+     */
+    public function suspensions(): HasMany
+    {
+        return $this->hasMany(\App\Models\Project\Suspension::class, 'idProject', 'idProject');
     }
 
     /** 

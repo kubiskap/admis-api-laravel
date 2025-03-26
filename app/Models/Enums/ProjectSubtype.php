@@ -3,6 +3,7 @@
 namespace App\Models\Enums;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class ProjectSubtype extends Model
 {
@@ -36,4 +37,16 @@ class ProjectSubtype extends Model
         'name',
         'hidden'
     ];
+
+    public function types(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            \App\Models\Enums\ProjectType::class,
+            'type2subtype',
+            'idProjectSubtype',
+            'idProjectType'
+        )
+        ->using(\App\Models\Pivots\ProjectTypeProjectSubtype::class)
+        ->withPivot('idPriorityConfig');
+    }
 }
