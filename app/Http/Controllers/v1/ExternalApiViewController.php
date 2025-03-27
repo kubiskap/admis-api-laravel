@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\v1;
 
 use Illuminate\Http\Request;
 use App\Models\Views\ExternalApi;
@@ -9,8 +9,9 @@ use App\Models\Views\ExternalApi;
  * @OA\Tag(
  *     name="External API",
  *     description="Operations for External API view"
+ * )
  */
-class ExternalApiViewController extends Controller
+class ExternalApiViewController extends APIBaseController
 {
     /**
      * @OA\Get(
