@@ -54,6 +54,13 @@ class ExternalApiViewController extends APIBaseController
             $query->where('datum_posledni_zmeny', '<=', $dateTo);
         }
 
+        if ($dateFrom && $dateTo) {
+            $query->whereBetween('datum_posledni_zmeny', [
+                "{$dateFrom} 00:00:00",
+                "{$dateTo} 23:59:59"
+            ]);
+        }
+
         return response()->json($query->get());
     }
 }
