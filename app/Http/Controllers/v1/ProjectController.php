@@ -78,35 +78,38 @@ class ProjectController extends Controller
      * @OA\Post(
      *     path="/v1/projects/search",
      *     summary="Search projects with filters",
-     *     description="Search projects using various filters provided in the request body",
+     *     description="Search projects using various filters provided in the request body. Only projects with no deletedDate are returned.",
      *     operationId="searchProjects",
      *     tags={"Projects"},
      *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(
-     *         name="per_page",
-     *         in="query",
-     *         description="Number of items per page",
-     *         required=false,
-     *         @OA\Schema(type="integer", default=15)
-     *     ),
-     *     @OA\Parameter(
-     *         name="sort_field",
-     *         in="query",
-     *         description="Field to sort by",
-     *         required=false,
-     *         @OA\Schema(type="string", default="idProject")
-     *     ),
-     *     @OA\Parameter(
-     *         name="sort_order",
-     *         in="query",
-     *         description="Sort order: 1 for ascending, -1 for descending",
-     *         required=false,
-     *         @OA\Schema(type="integer", default=1)
-     *     ),
      *     @OA\RequestBody(
      *         required=false,
      *         @OA\JsonContent(
      *             type="object",
+     *             @OA\Property(
+     *                 property="page",
+     *                 type="integer",
+     *                 default=1,
+     *                 description="Page number"
+     *             ),
+     *             @OA\Property(
+     *                 property="per_page",
+     *                 type="integer",
+     *                 default=15,
+     *                 description="Number of items per page"
+     *             ),
+     *             @OA\Property(
+     *                 property="sort_field",
+     *                 type="string",
+     *                 default="idProject",
+     *                 description="Field to sort by"
+     *             ),
+     *             @OA\Property(
+     *                 property="sort_order",
+     *                 type="integer",
+     *                 default=1,
+     *                 description="Sort order: 1 for ascending, -1 for descending"
+     *             ),
      *             @OA\Property(
      *                 property="filter",
      *                 type="object",
@@ -267,7 +270,7 @@ class ProjectController extends Controller
      *             @OA\Items(
      *                 type="object",
      *                 @OA\Property(property="author", type="string"),
-     *                 @OA\Property(property="latest_date", type="string", format="date")
+     *                 @OA\Property(property="date", type="string", format="date")
      *             )
      *         )
      *     ),
