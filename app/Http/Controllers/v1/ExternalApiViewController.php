@@ -44,13 +44,13 @@ class ExternalApiViewController extends APIBaseController
         $query = ExternalApi::query();
 
         $dateFrom = $request->input('date_from');
-        $dateTo   = $request->input('date_to');
+       // $dateTo   = $request->input('date_to');
 
         if ($dateFrom) {
             $query->where('datum_posledni_zmeny', '>=', $dateFrom);
         }
 
-        if ($dateTo) {
+       /* if ($dateTo) {
             $query->where('datum_posledni_zmeny', '<=', $dateTo);
         }
 
@@ -59,7 +59,7 @@ class ExternalApiViewController extends APIBaseController
                 "{$dateFrom} 00:00:00",
                 "{$dateTo} 23:59:59"
             ]);
-        }
+        }*/
 
         return response()->json($query->get());
     }

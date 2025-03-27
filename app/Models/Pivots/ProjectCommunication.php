@@ -9,9 +9,9 @@ use MatanYadaev\EloquentSpatial\SpatialBuilder;
 
 class ProjectCommunication extends Pivot
 {
-    
+
     use HasSpatial;
-    
+
     /**
      * The table associated with the pivot model.
      */
@@ -40,8 +40,10 @@ class ProjectCommunication extends Pivot
         'gpsN2',
         'gpsE1',
         'gpsE2',
-        'allPoints',
-        'geometry',
+        'allPointsWgs',
+        'allPointsSjtsk',
+        'geometryWgs',
+        'geometrySjtsk',
         'comment',
     ];
 
@@ -49,8 +51,10 @@ class ProjectCommunication extends Pivot
      * The attributes that should be cast.
      */
     protected $casts = [
-        'allPoints' => LineString::class,
-        'geometry' => LineString::class,
+        'allPointsWgs' => LineString::class,
+        'geometryWgs' => LineString::class,
+        'allPointsSjtsk' => LineString::class,
+        'geometrySjtsk' => LineString::class,
         'gpsN1' => 'float',
         'gpsN2' => 'float',
         'gpsE1' => 'float',

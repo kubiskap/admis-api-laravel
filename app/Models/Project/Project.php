@@ -173,7 +173,7 @@ class Project extends Model
     {
         return $this->hasMany(\App\Models\Tasks\Task::class, 'relatedToProjectId', 'idProject');
     }
-    
+
     /**
      * A project can have one or more price entries in the 'prices' table.
      * prices.idProject -> projects.idProject
@@ -210,7 +210,7 @@ class Project extends Model
         return $this->hasMany(\App\Models\Project\Suspension::class, 'idProject', 'idProject');
     }
 
-    /** 
+    /**
      * A project can have many actions in the log through its versions
      * actionsLogs.idLocalProject -> projectVersions.idLocalProject -> projectVersions.idProject -> projects.idProject
      */
@@ -245,8 +245,10 @@ class Project extends Model
             'gpsN2',
             'gpsE1',
             'gpsE2',
-            'allPoints',
-            'geometry',
+             'allPointsWgs',
+             'allPointsSjtsk',
+             'geometryWgs',
+             'geometrySjtsk',
             'comment'
         ]);
     }

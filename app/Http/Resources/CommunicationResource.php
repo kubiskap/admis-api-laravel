@@ -27,8 +27,10 @@ class CommunicationResource extends JsonResource
                 'gps_n2' => $this->pivot->gpsN2,
                 'gps_e1' => $this->pivot->gpsE1,
                 'gps_e2' => $this->pivot->gpsE2,
-                'all_points' => $this->pivot->allPoints,
-                'geometry' => $this->pivot->geometry,
+                'allPointsWgs' => $this->pivot->allPointsWgs,
+                'allPointsSjtsk' => $this->pivot->allPointsSjtsk,
+                'geometryWgs' => $this->pivot->geometryWgs,
+                'geometrySjtsk' => $this->pivot->geometrySjtsk,
             ]),
         ];
     }
