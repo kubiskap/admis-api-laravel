@@ -10,7 +10,7 @@ use App\Models\Views\ExternalApi;
  *     name="External API",
  *     description="Operations for External API view"
  */
-class ExternalApiController extends Controller
+class ExternalApiViewController extends Controller
 {
     /**
      * @OA\Get(
