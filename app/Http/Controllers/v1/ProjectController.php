@@ -20,7 +20,7 @@ class ProjectController extends Controller
 {
     /**
      * @OA\Get(
-     *     path="/v1/projects/{id}",
+     *     path="/api/v1/projects/{id}",
      *     summary="Get project details",
      *     description="Retrieves details of a single project by ID",
      *     operationId="show",
@@ -38,13 +38,104 @@ class ProjectController extends Controller
      *         description="Successful operation",
      *         @OA\JsonContent(
      *             type="object",
-     *             @OA\Property(property="data", type="array", @OA\Items(type="object")),
-     *             @OA\Property(property="meta", type="object")
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="id", type="integer"),
+     *                 @OA\Property(property="name", type="string"),
+     *                 @OA\Property(property="type", type="string"),
+     *                 @OA\Property(property="subtype", type="string", nullable=true),
+     *                 @OA\Property(property="in_concept", type="boolean"),
+     *                 @OA\Property(
+     *                     property="phase",
+     *                     type="object",
+     *                     @OA\Property(property="id", type="integer"),
+     *                     @OA\Property(property="name", type="string"),
+     *                     @OA\Property(property="color", type="string"),
+     *                     @OA\Property(property="color_class", type="string")
+     *                 ),
+     *                 @OA\Property(
+     *                     property="editor",
+     *                     type="object",
+     *                     @OA\Property(property="username", type="string"),
+     *                     @OA\Property(property="name", type="string")
+     *                 ),
+     *                 @OA\Property(
+     *                     property="author",
+     *                     type="object",
+     *                     @OA\Property(property="username", type="string"),
+     *                     @OA\Property(property="name", type="string")
+     *                 ),
+     *                 @OA\Property(property="priority_attributes", type="object"),
+     *                 @OA\Property(property="financial_source", type="string"),
+     *                 @OA\Property(property="financial_source_pd", type="string"),
+     *                 @OA\Property(property="areas", type="array", @OA\Items(type="string")),
+     *                 @OA\Property(
+     *                     property="communications",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         type="object",
+     *                         @OA\Property(property="name", type="string"),
+     *                         @OA\Property(property="stationing_from", type="number", format="float"),
+     *                         @OA\Property(property="stationing_to", type="number", format="float"),
+     *                         @OA\Property(property="gps_n1", type="number", format="float"),
+     *                         @OA\Property(property="gps_n2", type="number", format="float"),
+     *                         @OA\Property(property="gps_e1", type="number", format="float"),
+     *                         @OA\Property(property="gps_e2", type="number", format="float"),
+     *                         @OA\Property(property="allPointsWgs", type="string", nullable=true),
+     *                         @OA\Property(property="allPointsSjtsk", type="string", nullable=true),
+     *                         @OA\Property(property="geometryWgs", type="string", nullable=true),
+     *                         @OA\Property(property="geometrySjtsk", type="string", nullable=true)
+     *                     )
+     *                 ),
+     *                 @OA\Property(
+     *                     property="contacts",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         type="object",
+     *                         @OA\Property(property="id", type="integer"),
+     *                         @OA\Property(property="name", type="string"),
+     *                         @OA\Property(property="phone", type="string"),
+     *                         @OA\Property(property="email", type="string"),
+     *                         @OA\Property(
+     *                             property="type",
+     *                             type="object",
+     *                             @OA\Property(property="name", type="string")
+     *                         )
+     *                     )
+     *                 ),
+     *                 @OA\Property(
+     *                     property="companies",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         type="object",
+     *                         @OA\Property(property="id", type="integer"),
+     *                         @OA\Property(property="name", type="string"),
+     *                         @OA\Property(property="address", type="string"),
+     *                         @OA\Property(property="ic", type="string"),
+     *                         @OA\Property(property="dic", type="string"),
+     *                         @OA\Property(property="www", type="string"),
+     *                         @OA\Property(
+     *                             property="type",
+     *                             type="object",
+     *                             @OA\Property(property="name", type="string")
+     *                         )
+     *                     )
+     *                 ),
+     *                 @OA\Property(property="prices", type="array", @OA\Items(type="object")),
+     *                 @OA\Property(property="deadlines", type="array", @OA\Items(type="object")),
+     *                 @OA\Property(property="suspensions", type="array", @OA\Items(type="object")),
+     *                 @OA\Property(property="tasks", type="array", @OA\Items(type="object"))
+     *             )
      *         )
      *     ),
      *     @OA\Response(
      *         response=401,
      *         description="Unauthenticated"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Project not found"
      *     )
      * )
      */
@@ -76,7 +167,7 @@ class ProjectController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/v1/projects/search",
+     *     path="/api/v1/projects/search",
      *     summary="Search projects with filters",
      *     description="Search projects using various filters provided in the request body. Only projects with no deletedDate are returned.",
      *     operationId="searchProjects",
@@ -145,8 +236,46 @@ class ProjectController extends Controller
      *         description="Successful operation",
      *         @OA\JsonContent(
      *             type="object",
-     *             @OA\Property(property="data", type="array", @OA\Items(type="object")),
-     *             @OA\Property(property="meta", type="object")
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="array",
+     *                 @OA\Items(
+     *                     type="object",
+     *                     @OA\Property(property="id", type="integer"),
+     *                     @OA\Property(property="name", type="string"),
+     *                     @OA\Property(property="type", type="string"),
+     *                     @OA\Property(property="subtype", type="string", nullable=true),
+     *                     @OA\Property(property="in_concept", type="boolean"),
+     *                     @OA\Property(
+     *                         property="phase",
+     *                         type="object",
+     *                         @OA\Property(property="id", type="integer"),
+     *                         @OA\Property(property="name", type="string"),
+     *                         @OA\Property(property="color", type="string"),
+     *                         @OA\Property(property="color_class", type="string")
+     *                     ),
+     *                     @OA\Property(
+     *                         property="editor",
+     *                         type="object",
+     *                         @OA\Property(property="username", type="string"),
+     *                         @OA\Property(property="name", type="string")
+     *                     ),
+     *                     @OA\Property(property="communications", type="array", @OA\Items(type="object")),
+     *                     @OA\Property(property="areas", type="array", @OA\Items(type="string"))
+     *                 )
+     *             ),
+     *             @OA\Property(
+     *                 property="meta",
+     *                 type="object",
+     *                 @OA\Property(property="current_page", type="integer"),
+     *                 @OA\Property(property="from", type="integer"),
+     *                 @OA\Property(property="last_page", type="integer"),
+     *                 @OA\Property(property="links", type="array", @OA\Items(type="object")),
+     *                 @OA\Property(property="path", type="string"),
+     *                 @OA\Property(property="per_page", type="integer"),
+     *                 @OA\Property(property="to", type="integer"),
+     *                 @OA\Property(property="total", type="integer")
+     *             )
      *         )
      *     ),
      *     @OA\Response(
@@ -249,7 +378,7 @@ class ProjectController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/v1/projects/{id}/editors-history",
+     *     path="/api/v1/projects/{id}/editors-history",
      *     summary="Get distinct authors who edited the project with their latest edit date",
      *     description="Retrieves a list of unique authors who have created versions of the project, including their latest edit date",
      *     operationId="getProjectEditorsHistory",
@@ -269,8 +398,8 @@ class ProjectController extends Controller
      *             type="array",
      *             @OA\Items(
      *                 type="object",
-     *                 @OA\Property(property="author", type="string"),
-     *                 @OA\Property(property="date", type="string", format="date")
+     *                 @OA\Property(property="editor", type="string"),
+     *                 @OA\Property(property="date", type="string", format="date-time")
      *             )
      *         )
      *     ),
@@ -302,7 +431,7 @@ class ProjectController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/v1/projects/{id}/log",
+     *     path="/api/v1/projects/{id}/log",
      *     summary="Get project action logs",
      *     description="Retrieves a list of all actions performed on the project, including action type, user, and timestamp",
      *     operationId="getProjectLog",
@@ -325,9 +454,9 @@ class ProjectController extends Controller
      *     @OA\Parameter(
      *         name="sort_field",
      *         in="query",
-     *         description="Field to sort by (idAction, created, username, action_type)",
+     *         description="Field to sort by (date, user.username, action, project.name)",
      *         required=false,
-     *         @OA\Schema(type="string", default="created")
+     *         @OA\Schema(type="string", default="date")
      *     ),
      *     @OA\Parameter(
      *         name="sort_order",
@@ -346,14 +475,36 @@ class ProjectController extends Controller
      *                 type="array",
      *                 @OA\Items(
      *                     type="object",
-     *                     @OA\Property(property="idAction", type="integer"),
-     *                     @OA\Property(property="project_name", type="string"),
-     *                     @OA\Property(property="created", type="string", format="date-time"),
-     *                     @OA\Property(property="action_type", type="string"),
-     *                     @OA\Property(property="username", type="string")
+     *                     @OA\Property(property="id", type="integer"),
+     *                     @OA\Property(property="date", type="string", format="date-time"),
+     *                     @OA\Property(
+     *                         property="user",
+     *                         type="object",
+     *                         @OA\Property(property="username", type="string"),
+     *                         @OA\Property(property="name", type="string")
+     *                     ),
+     *                     @OA\Property(property="action", type="string"),
+     *                     @OA\Property(
+     *                         property="project",
+     *                         type="object",
+     *                         @OA\Property(property="id", type="integer"),
+     *                         @OA\Property(property="name", type="string"),
+     *                         @OA\Property(property="phase", type="string")
+     *                     )
      *                 )
      *             ),
-     *             @OA\Property(property="meta", type="object")
+     *             @OA\Property(
+     *                 property="meta",
+     *                 type="object",
+     *                 @OA\Property(property="current_page", type="integer"),
+     *                 @OA\Property(property="from", type="integer"),
+     *                 @OA\Property(property="last_page", type="integer"),
+     *                 @OA\Property(property="links", type="array", @OA\Items(type="object")),
+     *                 @OA\Property(property="path", type="string"),
+     *                 @OA\Property(property="per_page", type="integer"),
+     *                 @OA\Property(property="to", type="integer"),
+     *                 @OA\Property(property="total", type="integer")
+     *             )
      *         )
      *     ),
      *     @OA\Response(

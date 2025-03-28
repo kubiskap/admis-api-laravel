@@ -799,12 +799,150 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "successful operation"
+                        "description": "successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "nazev_projektu": {
+                                                "type": "string",
+                                                "example": "II/666 Netvořice, rekonstrukce,"
+                                            },
+                                            "id_projektu": {
+                                                "type": "integer",
+                                                "example": 2
+                                            },
+                                            "charakter_projektu": {
+                                                "type": "string",
+                                                "example": "Projekt stavby"
+                                            },
+                                            "faze_projektu": {
+                                                "type": "string",
+                                                "example": "Zrealizováno"
+                                            },
+                                            "cena": {
+                                                "type": "integer",
+                                                "example": 60000
+                                            },
+                                            "geo_body": {
+                                                "type": "string",
+                                                "example": "MULTILINESTRING((14.000 49.000, 14.001 49.001),(14.000 49.000, 14.001 49.001), ...)",
+                                                "nullable": true
+                                            },
+                                            "komunikace_array": {
+                                                "type": "array",
+                                                "items": {
+                                                    "properties": {
+                                                        "komunikace_nazev": {
+                                                            "type": "string",
+                                                            "example": "666"
+                                                        },
+                                                        "staniceni_od": {
+                                                            "type": "number",
+                                                            "format": "float",
+                                                            "example": "0.000"
+                                                        },
+                                                        "staniceni_do": {
+                                                            "type": "number",
+                                                            "format": "float",
+                                                            "example": "1.234"
+                                                        },
+                                                        "staniceni_od_uls": {
+                                                            "type": "number",
+                                                            "format": "float",
+                                                            "example": "0.000"
+                                                        },
+                                                        "staniceni_do_uls": {
+                                                            "type": "number",
+                                                            "format": "float",
+                                                            "example": "1.234"
+                                                        },
+                                                        "uls_verze": {
+                                                            "type": "string",
+                                                            "example": "202010"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "odkaz": {
+                                                "type": "string",
+                                                "example": "http://admistrace/projekt/2"
+                                            },
+                                            "datum_posledni_zmeny": {
+                                                "type": "string",
+                                                "format": "date-time",
+                                                "example": "2020-10-29T09:53:03.000000Z"
+                                            },
+                                            "popis_projektu": {
+                                                "type": "string",
+                                                "example": "Popis projektu..."
+                                            },
+                                            "editor_jmeno": {
+                                                "type": "string",
+                                                "example": "Jan Novák"
+                                            },
+                                            "editor_username": {
+                                                "type": "string",
+                                                "example": "jan.novak"
+                                            },
+                                            "priorita_skore": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "priorita_korekce": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "predani_staveniste": {
+                                                "type": "string",
+                                                "format": "date-time"
+                                            },
+                                            "dokonceni_stavby": {
+                                                "type": "string",
+                                                "format": "date-time"
+                                            },
+                                            "zaruka_technologicka": {
+                                                "type": "string",
+                                                "format": "date-time"
+                                            },
+                                            "zaruka_stavebni": {
+                                                "type": "string",
+                                                "format": "date-time"
+                                            },
+                                            "zdroj_financovani_pd": {
+                                                "type": "string",
+                                                "nullable": true
+                                            },
+                                            "zdroj_financovani_stavby": {
+                                                "type": "string",
+                                                "example": "IROP"
+                                            },
+                                            "okres": {
+                                                "type": "string",
+                                                "example": "Benešov"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
                     }
-                }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
-        "/v1/projects/{id}": {
+        "/api/v1/projects/{id}": {
             "get": {
                 "tags": [
                     "Projects"
@@ -831,12 +969,215 @@
                                 "schema": {
                                     "properties": {
                                         "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object"
-                                            }
-                                        },
-                                        "meta": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "name": {
+                                                    "type": "string"
+                                                },
+                                                "type": {
+                                                    "type": "string"
+                                                },
+                                                "subtype": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                },
+                                                "in_concept": {
+                                                    "type": "boolean"
+                                                },
+                                                "phase": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer"
+                                                        },
+                                                        "name": {
+                                                            "type": "string"
+                                                        },
+                                                        "color": {
+                                                            "type": "string"
+                                                        },
+                                                        "color_class": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "editor": {
+                                                    "properties": {
+                                                        "username": {
+                                                            "type": "string"
+                                                        },
+                                                        "name": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "author": {
+                                                    "properties": {
+                                                        "username": {
+                                                            "type": "string"
+                                                        },
+                                                        "name": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "priority_attributes": {
+                                                    "type": "object"
+                                                },
+                                                "financial_source": {
+                                                    "type": "string"
+                                                },
+                                                "financial_source_pd": {
+                                                    "type": "string"
+                                                },
+                                                "areas": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "communications": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "name": {
+                                                                "type": "string"
+                                                            },
+                                                            "stationing_from": {
+                                                                "type": "number",
+                                                                "format": "float"
+                                                            },
+                                                            "stationing_to": {
+                                                                "type": "number",
+                                                                "format": "float"
+                                                            },
+                                                            "gps_n1": {
+                                                                "type": "number",
+                                                                "format": "float"
+                                                            },
+                                                            "gps_n2": {
+                                                                "type": "number",
+                                                                "format": "float"
+                                                            },
+                                                            "gps_e1": {
+                                                                "type": "number",
+                                                                "format": "float"
+                                                            },
+                                                            "gps_e2": {
+                                                                "type": "number",
+                                                                "format": "float"
+                                                            },
+                                                            "allPointsWgs": {
+                                                                "type": "string",
+                                                                "nullable": true
+                                                            },
+                                                            "allPointsSjtsk": {
+                                                                "type": "string",
+                                                                "nullable": true
+                                                            },
+                                                            "geometryWgs": {
+                                                                "type": "string",
+                                                                "nullable": true
+                                                            },
+                                                            "geometrySjtsk": {
+                                                                "type": "string",
+                                                                "nullable": true
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "contacts": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "name": {
+                                                                "type": "string"
+                                                            },
+                                                            "phone": {
+                                                                "type": "string"
+                                                            },
+                                                            "email": {
+                                                                "type": "string"
+                                                            },
+                                                            "type": {
+                                                                "properties": {
+                                                                    "name": {
+                                                                        "type": "string"
+                                                                    }
+                                                                },
+                                                                "type": "object"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "companies": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "name": {
+                                                                "type": "string"
+                                                            },
+                                                            "address": {
+                                                                "type": "string"
+                                                            },
+                                                            "ic": {
+                                                                "type": "string"
+                                                            },
+                                                            "dic": {
+                                                                "type": "string"
+                                                            },
+                                                            "www": {
+                                                                "type": "string"
+                                                            },
+                                                            "type": {
+                                                                "properties": {
+                                                                    "name": {
+                                                                        "type": "string"
+                                                                    }
+                                                                },
+                                                                "type": "object"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "prices": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "deadlines": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "suspensions": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "tasks": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
                                             "type": "object"
                                         }
                                     },
@@ -847,6 +1188,9 @@
                     },
                     "401": {
                         "description": "Unauthenticated"
+                    },
+                    "404": {
+                        "description": "Project not found"
                     }
                 },
                 "security": [
@@ -856,7 +1200,7 @@
                 ]
             }
         },
-        "/v1/projects/search": {
+        "/api/v1/projects/search": {
             "post": {
                 "tags": [
                     "Projects"
@@ -998,10 +1342,97 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "name": {
+                                                        "type": "string"
+                                                    },
+                                                    "type": {
+                                                        "type": "string"
+                                                    },
+                                                    "subtype": {
+                                                        "type": "string",
+                                                        "nullable": true
+                                                    },
+                                                    "in_concept": {
+                                                        "type": "boolean"
+                                                    },
+                                                    "phase": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "name": {
+                                                                "type": "string"
+                                                            },
+                                                            "color": {
+                                                                "type": "string"
+                                                            },
+                                                            "color_class": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    },
+                                                    "editor": {
+                                                        "properties": {
+                                                            "username": {
+                                                                "type": "string"
+                                                            },
+                                                            "name": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    },
+                                                    "communications": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "object"
+                                                        }
+                                                    },
+                                                    "areas": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                },
                                                 "type": "object"
                                             }
                                         },
                                         "meta": {
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer"
+                                                },
+                                                "from": {
+                                                    "type": "integer"
+                                                },
+                                                "last_page": {
+                                                    "type": "integer"
+                                                },
+                                                "links": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "path": {
+                                                    "type": "string"
+                                                },
+                                                "per_page": {
+                                                    "type": "integer"
+                                                },
+                                                "to": {
+                                                    "type": "integer"
+                                                },
+                                                "total": {
+                                                    "type": "integer"
+                                                }
+                                            },
                                             "type": "object"
                                         }
                                     },
@@ -1021,7 +1452,7 @@
                 ]
             }
         },
-        "/v1/projects/{id}/editors-history": {
+        "/api/v1/projects/{id}/editors-history": {
             "get": {
                 "tags": [
                     "Projects"
@@ -1049,12 +1480,12 @@
                                     "type": "array",
                                     "items": {
                                         "properties": {
-                                            "author": {
+                                            "editor": {
                                                 "type": "string"
                                             },
                                             "date": {
                                                 "type": "string",
-                                                "format": "date"
+                                                "format": "date-time"
                                             }
                                         },
                                         "type": "object"
@@ -1077,7 +1508,7 @@
                 ]
             }
         },
-        "/v1/projects/{id}/log": {
+        "/api/v1/projects/{id}/log": {
             "get": {
                 "tags": [
                     "Projects"
@@ -1108,11 +1539,11 @@
                     {
                         "name": "sort_field",
                         "in": "query",
-                        "description": "Field to sort by (idAction, created, username, action_type)",
+                        "description": "Field to sort by (date, user.username, action, project.name)",
                         "required": false,
                         "schema": {
                             "type": "string",
-                            "default": "created"
+                            "default": "date"
                         }
                     },
                     {
@@ -1137,27 +1568,75 @@
                                             "type": "array",
                                             "items": {
                                                 "properties": {
-                                                    "idAction": {
+                                                    "id": {
                                                         "type": "integer"
                                                     },
-                                                    "project_name": {
-                                                        "type": "string"
-                                                    },
-                                                    "created": {
+                                                    "date": {
                                                         "type": "string",
                                                         "format": "date-time"
                                                     },
-                                                    "action_type": {
+                                                    "user": {
+                                                        "properties": {
+                                                            "username": {
+                                                                "type": "string"
+                                                            },
+                                                            "name": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    },
+                                                    "action": {
                                                         "type": "string"
                                                     },
-                                                    "username": {
-                                                        "type": "string"
+                                                    "project": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "name": {
+                                                                "type": "string"
+                                                            },
+                                                            "phase": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "type": "object"
                                                     }
                                                 },
                                                 "type": "object"
                                             }
                                         },
                                         "meta": {
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer"
+                                                },
+                                                "from": {
+                                                    "type": "integer"
+                                                },
+                                                "last_page": {
+                                                    "type": "integer"
+                                                },
+                                                "links": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "path": {
+                                                    "type": "string"
+                                                },
+                                                "per_page": {
+                                                    "type": "integer"
+                                                },
+                                                "to": {
+                                                    "type": "integer"
+                                                },
+                                                "total": {
+                                                    "type": "integer"
+                                                }
+                                            },
                                             "type": "object"
                                         }
                                     },

@@ -47,20 +47,15 @@ class ExternalApi extends Model
     protected $guarded = [];
 
     protected $casts = [
-        'cena'                    => 'float',
-       /* 'gps_n1'                  => 'float',
-        'gps_n2'                  => 'float',
-        'gps_e1'                  => 'float',
-        'gps_e2'                  => 'float',
-        'staniceni_od'           => 'float',
-        'staniceni_do'           => 'float',*/
-        'priorita_skore'         => 'float',
-        'priorita_korekce'       => 'float',
-        'datum_posledni_zmeny'   => 'datetime',
-        'predani_staveniste'     => 'datetime',
-        'dokonceni_stavby'       => 'datetime',
-        'zaruka_technologicka'   => 'datetime',
-        'zaruka_stavebni'        => 'datetime',
-       // 'geo_body'               => MultiLineString::class,
+        'cena' => 'float',
+        'id_projektu' => 'int',
+        'komunikace_array' => 'json',
+        'priorita_skore' => 'float',
+        'priorita_korekce' => 'float',
+        'datum_posledni_zmeny' => 'datetime',
+        'predani_staveniste' => 'datetime',
+        'dokonceni_stavby' => 'datetime',
+        'zaruka_technologicka' => 'datetime',
+        'zaruka_stavebni' => 'datetime',
     ];
 }
