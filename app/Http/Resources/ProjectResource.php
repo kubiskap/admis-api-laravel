@@ -20,6 +20,7 @@ class ProjectResource extends JsonResource
             'name' => $this->name,
             'type' => $this->projectType->name,
             'subtype' => $this->projectSubtype?->name,
+            'in_concept' => $this->inConcept,
             'phase' => $this->whenLoaded('phase', function() {
                 return [
                     'id' => $this->phase->idPhase,
