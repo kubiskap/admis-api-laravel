@@ -11,7 +11,7 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
  * @OA\Info(
  *     title="ADMIS API v1",
  *     version="1.0",
- *     description="API documentation for ADMIS system"
+ *     description="API documentation for ADMIS"
  * )
  * @OA\Server(
  *     url=L5_SWAGGER_CONST_HOST,
@@ -38,6 +38,10 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
  * @OA\Tag(
  *     name="Resources",
  *     description="Enum and View resource endpoints"
+ * )
+ * @OA\Tag(
+ *    name="External API",
+ *    description="External API endpoints"
  * )
  */
 class APIBaseController extends BaseController
