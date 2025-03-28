@@ -45,16 +45,17 @@ class ExternalApiViewController extends APIBaseController
      *                 @OA\Property(property="charakter_projektu", type="string", example="Projekt stavby"),
      *                 @OA\Property(property="faze_projektu", type="string", example="Zrealizováno"),
      *                 @OA\Property(property="cena", type="integer", example=60000),
-     *                 @OA\Property(property="geo_body", type="string", nullable=true, example="MULTILINESTRING((14.000 49.000, 14.001 49.001),(14.000 49.000, 14.001 49.001), ...)"),
      *                 @OA\Property(
      *                      property="komunikace_array",
      *                      type="array",
      *                      @OA\Items(
      *                          @OA\Property(property="komunikace_nazev", type="string", example="666"),
-     *                          @OA\Property(property="staniceni_od", type="float", example="0.000"),
-     *                          @OA\Property(property="staniceni_do", type="float", example="1.234"),
-     *                          @OA\Property(property="staniceni_od_uls", type="float", example="0.000"),
-     *                          @OA\Property(property="staniceni_do_uls", type="float", example="1.234"),
+     *                          @OA\Property(property="staniceni_od_uzivatel", type="float", example="7895"),
+     *                          @OA\Property(property="staniceni_do_uzivatel", type="float", example="9025"),
+     *                          @OA\Property(property="staniceni_od_uls", type="float", example="6983"),
+     *                          @OA\Property(property="staniceni_do_uls", type="float", example="8480"),
+     *                          @OA\Property(property="geometrie_uls_sjtsk", type="string", example="LINESTRING(-700000 -1000000, -700000 -1000000, ...)"),
+     *                          @OA\Property(property="geometrie_uzivatel_wgs", type="string", example="LINESTRING(14.000 50.000, 14.000 50.000, ...)"),
      *                          @OA\Property(property="uls_verze", type="string", example="202010"),
      *                      )
      *                 ),

@@ -2,7 +2,7 @@
     "openapi": "3.0.0",
     "info": {
         "title": "ADMIS API v1",
-        "description": "API documentation for ADMIS system",
+        "description": "API documentation for ADMIS",
         "version": "1.0"
     },
     "servers": [
@@ -826,11 +826,6 @@
                                                 "type": "integer",
                                                 "example": 60000
                                             },
-                                            "geo_body": {
-                                                "type": "string",
-                                                "example": "MULTILINESTRING((14.000 49.000, 14.001 49.001),(14.000 49.000, 14.001 49.001), ...)",
-                                                "nullable": true
-                                            },
                                             "komunikace_array": {
                                                 "type": "array",
                                                 "items": {
@@ -839,25 +834,33 @@
                                                             "type": "string",
                                                             "example": "666"
                                                         },
-                                                        "staniceni_od": {
+                                                        "staniceni_od_uzivatel": {
                                                             "type": "number",
                                                             "format": "float",
-                                                            "example": "0.000"
+                                                            "example": "7895"
                                                         },
-                                                        "staniceni_do": {
+                                                        "staniceni_do_uzivatel": {
                                                             "type": "number",
                                                             "format": "float",
-                                                            "example": "1.234"
+                                                            "example": "9025"
                                                         },
                                                         "staniceni_od_uls": {
                                                             "type": "number",
                                                             "format": "float",
-                                                            "example": "0.000"
+                                                            "example": "6983"
                                                         },
                                                         "staniceni_do_uls": {
                                                             "type": "number",
                                                             "format": "float",
-                                                            "example": "1.234"
+                                                            "example": "8480"
+                                                        },
+                                                        "geometrie_uls_sjtsk": {
+                                                            "type": "string",
+                                                            "example": "LINESTRING(-700000 -1000000, -700000 -1000000, ...)"
+                                                        },
+                                                        "geometrie_uzivatel_wgs": {
+                                                            "type": "string",
+                                                            "example": "LINESTRING(14.000 50.000, 14.000 50.000, ...)"
                                                         },
                                                         "uls_verze": {
                                                             "type": "string",
