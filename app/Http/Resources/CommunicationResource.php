@@ -22,16 +22,7 @@ class CommunicationResource extends JsonResource
             'name' => $this->name,
             'stationing_from' => $this->pivot->stationingFrom,
             'stationing_to' => $this->pivot->stationingTo,
-            $this->mergeWhen(!$isSearch, [
-                'gps_n1' => $this->pivot->gpsN1,
-                'gps_n2' => $this->pivot->gpsN2,
-                'gps_e1' => $this->pivot->gpsE1,
-                'gps_e2' => $this->pivot->gpsE2,
-                'allPointsWgs' => $this->pivot->allPointsWgs,
-                'allPointsSjtsk' => $this->pivot->allPointsSjtsk,
-                'geometryWgs' => $this->pivot->geometryWgs,
-                'geometrySjtsk' => $this->pivot->geometrySjtsk,
-            ]),
+            $this->mergeWhen(!$isSearch, new CommunicationGeometryResource($this->pivot)),
         ];
     }
 }

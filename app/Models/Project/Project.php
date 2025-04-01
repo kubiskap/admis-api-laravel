@@ -245,10 +245,10 @@ class Project extends Model
             'gpsN2',
             'gpsE1',
             'gpsE2',
-             'allPointsWgs',
-             'allPointsSjtsk',
-             'geometryWgs',
-             'geometrySjtsk',
+            'allPointsWgs',
+            'allPointsSjtsk',
+            'geometryWgs',
+            'geometrySjtsk',
             'comment'
         ]);
     }

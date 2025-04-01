@@ -8,7 +8,15 @@ use Illuminate\Support\Facades\DB;
 
 use App\Http\Resources\ProjectResource;
 use App\Http\Resources\ActionLogResource;
+use App\Http\Resources\CommunicationGeometryResource;
+
 use App\Models\Project\Project;
+use App\Models\Pivots\ProjectCommunication;
+use MatanYadaev\EloquentSpatial\Enums\Srid;
+use MatanYadaev\EloquentSpatial\Objects\Polygon;
+use MatanYadaev\EloquentSpatial\Objects\LineString;
+use MatanYadaev\EloquentSpatial\Objects\Point;
+
 
 /**
  * @OA\Tag(
@@ -284,88 +292,121 @@ class ProjectController extends Controller
      *     )
      * )
      */
+
+    /**
+     * Reusable filter method that detects if $query is for Project or ProjectCommunication.
+     * If it's ProjectCommunication, filters are applied through the related 'project' relationship.
+     */
+    private function applyFilters(Request $request, $query)
+    {
+        $filters = $request->input('filter', []);
+        $isProjectCommunication = ($query->getModel() instanceof ProjectCommunication);
+
+        $applyProjectFilters = function ($q) use ($filters) {
+            // Only include non-deleted projects
+            $q->whereNull('deletedDate');
+
+            // Project-level filters
+            if (!empty($filters['project'])) {
+                $projectFilters = $filters['project'];
+
+                if (!empty($projectFilters['id'])) {
+                    $q->whereIn('idProject', (array) $projectFilters['id']);
+                }
+                if (!empty($projectFilters['editor'])) {
+                    $q->whereIn('editor', (array) $projectFilters['editor']);
+                }
+                if (!empty($projectFilters['ou'])) {
+                    $q->whereHas('editorUser', function ($subQ) use ($projectFilters) {
+                        $subQ->whereIn('idOu', (array) $projectFilters['ou']);
+                    });
+                }
+                if (!empty($projectFilters['type'])) {
+                    $q->whereIn('idProjectType', (array) $projectFilters['type']);
+                }
+                if (!empty($projectFilters['subtype'])) {
+                    $q->whereIn('idProjectSubtype', (array) $projectFilters['subtype']);
+                }
+                if (!empty($projectFilters['phase'])) {
+                    $q->whereIn('idPhase', (array) $projectFilters['phase']);
+                }
+                if (!empty($projectFilters['financialSource'])) {
+                    $q->whereIn('idFinSource', (array) $projectFilters['financialSource']);
+                }
+            }
+
+            // Related filters
+            if (isset($filters['related'])) {
+                $relatedFilters = $filters['related'];
+                if (!empty($relatedFilters['communications'])) {
+                    $q->whereHas('communications', function ($subQ) use ($relatedFilters) {
+                        $subQ->whereIn('project2communication.idCommunication', (array) $relatedFilters['communications']);
+                    });
+                }
+                if (!empty($relatedFilters['areas'])) {
+                    $q->whereHas('areas', function ($subQ) use ($relatedFilters) {
+                        $subQ->whereIn('project2area.idArea', (array) $relatedFilters['areas']);
+                    });
+                }
+            }
+
+            // Company-related filters
+            if (isset($filters['companies'])) {
+                $companyFilters = $filters['companies'];
+                if (!empty($companyFilters['supervisor'])) {
+                    $q->whereHas('companies', function ($subQ) use ($companyFilters) {
+                        $subQ->where('idCompanyType', 3)
+                             ->whereIn('project2company.idCompany', (array) $companyFilters['supervisor']);
+                    });
+                }
+                if (!empty($companyFilters['builder'])) {
+                    $q->whereHas('companies', function ($subQ) use ($companyFilters) {
+                        $subQ->where('idCompanyType', 2)
+                             ->whereIn('project2company.idCompany', (array) $companyFilters['builder']);
+                    });
+                }
+                if (!empty($companyFilters['project'])) {
+                    $q->whereHas('companies', function ($subQ) use ($companyFilters) {
+                        $subQ->where('idCompanyType', 1)
+                             ->whereIn('project2company.idCompany', (array) $companyFilters['project']);
+                    });
+                }
+            }
+        };
+
+        // If this is ProjectCommunication, apply project filters via `whereHas('project')`
+        if ($isProjectCommunication) {
+            $query->whereHas('project', function ($q) use ($applyProjectFilters) {
+                $applyProjectFilters($q);
+            });
+        } else {
+            // It's a Project query—apply filters directly
+            $applyProjectFilters($query);
+        }
+
+        return $query;
+    }
+
     public function search(Request $request)
     {
-        $perPage = (int) $request->input('per_page', 15); // Ensure per_page is an integer
-        $page = (int) $request->input('page', 1); // Ensure page is an integer
-        $filters = $request->input('filter', []);
+        $perPage = (int) $request->input('per_page', 15);
+        $page = (int) $request->input('page', 1);
         $sortField = $request->input('sort_field', 'idProject');
         $sortOrder = (int) $request->input('sort_order', 1) === -1 ? 'desc' : 'asc';
 
         $query = Project::whereNull('deletedDate')
-             ->with([
-                 'projectType',
-                 'projectSubtype',
-                 'financialSource',
-                 'phase',
-                 'editorUser',
-                 'areas',
-                 'communications',
-             ]);
+            ->with([
+                'projectType',
+                'projectSubtype',
+                'financialSource',
+                'phase',
+                'editorUser',
+                'areas',
+                'communications',
+            ]);
 
-        // Apply filters
-        if (!empty($filters['project'])) {
-            $projectFilters = $filters['project'];
-            if (!empty($projectFilters['id'])) {
-                $query->whereIn('idProject', (array)$projectFilters['id']);
-            }
-            if (!empty($projectFilters['editor'])) {
-                $query->whereIn('editor', (array)$projectFilters['editor']);
-            }
-            if (!empty($projectFilters['ou'])) {
-                $query->whereHas('editorUser', function ($q) use ($projectFilters) {
-                    $q->whereIn('idOu', (array)$projectFilters['ou']);
-                });
-            }
-            if (!empty($projectFilters['type'])) {
-                $query->whereIn('idProjectType', (array)$projectFilters['type']);
-            }
-            if (!empty($projectFilters['subtype'])) {
-                $query->whereIn('idProjectSubtype', (array)$projectFilters['subtype']);
-            }
-            if (!empty($projectFilters['phase'])) {
-                $query->whereIn('idPhase', (array)$projectFilters['phase']);
-            }
-            if (!empty($projectFilters['financialSource'])) {
-                $query->whereIn('idFinSource', (array)$projectFilters['financialSource']);
-            }
-        }
-
-        if (isset($filters['related'])) {
-            $relatedFilters = $filters['related'];
-            if (!empty($relatedFilters['communications'])) {
-                $query->whereHas('communications', function ($q) use ($relatedFilters) {
-                    $q->whereIn('project2communication.idCommunication', (array)$relatedFilters['communications']);
-                });
-            }
-            if (!empty($relatedFilters['areas'])) {
-                $query->whereHas('areas', function ($q) use ($relatedFilters) {
-                    $q->whereIn('project2area.idArea', (array)$relatedFilters['areas']);
-                });
-            }
-        }
-
-        if (isset($filters['companies'])) {
-            $companyFilters = $filters['companies'];
-            if (!empty($companyFilters['supervisor'])) {
-                $query->whereHas('companies', function ($q) use ($companyFilters) {
-                    $q->where('idCompanyType', 3)
-                      ->whereIn('project2company.idCompany', (array)$companyFilters['supervisor']);
-                });
-            }
-            if (!empty($companyFilters['builder'])) {
-                $query->whereHas('companies', function ($q) use ($companyFilters) {
-                    $q->where('idCompanyType', 2)
-                      ->whereIn('project2company.idCompany', (array)$companyFilters['builder']);
-                });
-            }
-            if (!empty($companyFilters['project'])) {
-                $query->whereHas('companies', function ($q) use ($companyFilters) {
-                    $q->where('idCompanyType', 1)
-                      ->whereIn('project2company.idCompany', (array)$companyFilters['project']);
-                });
-            }
-        }
+        // Apply filters using the reusable method
+        $query = $this->applyFilters($request, $query);
 
         // Apply sorting
         $query->orderBy($sortField, $sortOrder);
@@ -374,6 +415,53 @@ class ProjectController extends Controller
         $projects = $query->paginate($perPage, ['*'], 'page', $page);
 
         return ProjectResource::collection($projects);
+    }
+
+    public function map(Request $request)
+    {
+        $spatialFilters = $request->input('filter.spatial', []);
+        $boundingBox = $spatialFilters['bounding_box'] ?? null;
+        $zoom = $spatialFilters['zoom'] ?? null;
+    
+        // Base query for ProjectCommunication, ensuring the project is not deleted
+        $query = ProjectCommunication::query()
+            ->whereHas('project', function ($q) {
+                // Filter only projects with no deletedDate
+                $q->whereNull('deletedDate');
+            })
+            ->select('idProject', 'idCommunication', 'gpsN1', 'gpsN2', 'gpsE1', 'gpsE2');
+    
+        // Add geometryWgs if zoom level is less than 10
+        if ($zoom < 10) {
+            $query->addSelect('geometryWgs');
+        }
+    
+        // If a valid bounding box is provided, apply the spatial filter
+        if (is_array($boundingBox) && count($boundingBox) === 4) {
+            [$minLat, $minLng, $maxLat, $maxLng] = $boundingBox;
+    
+            $lineString = new LineString([
+                new Point($minLat, $minLng),
+                new Point($minLat, $maxLng),
+                new Point($maxLat, $maxLng),
+                new Point($maxLat, $minLng),
+                new Point($minLat, $minLng), // Close the polygon
+            ]);
+            $polygon = new Polygon([$lineString]);
+            
+    
+            // Apply the spatial filter
+            $query->whereNotNull('geometryWgs')
+            ->whereIntersects('geometryWgs', $polygon);
+        }
+    
+        // Apply the reusable filters (they will run via project relationship)
+        $query = $this->applyFilters($request, $query);
+    
+        // Fetch communications with related project
+        $communications = $query->get();
+    
+        return CommunicationGeometryResource::collection($communications);
     }
 
     /**

@@ -61,7 +61,7 @@ class ProjectResource extends JsonResource
                         'email' => $contact->email,
                         'type' => [
                             'id' => $contact->pivot->contactType->idContactType,
-                            'name' =>$contact->pivot->contactType->name,
+                            'name' => $contact->pivot->contactType->name,
                         ],
                     ];
                 });

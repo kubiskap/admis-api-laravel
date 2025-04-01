@@ -3,6 +3,9 @@
 namespace App\Models\Pivots;
 
 use Illuminate\Database\Eloquent\Relations\Pivot;
+
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
 use MatanYadaev\EloquentSpatial\Objects\LineString;
 use MatanYadaev\EloquentSpatial\Traits\HasSpatial;
 use MatanYadaev\EloquentSpatial\SpatialBuilder;
@@ -62,14 +65,6 @@ class ProjectCommunication extends Pivot
         'stationingFrom' => 'float',
         'stationingTo' => 'float',
     ];
-
-    /**
-     * Override the default query builder by a SpatialBuilder.
-     */
-    public function newEloquentBuilder($query): SpatialBuilder
-    {
-        return new SpatialBuilder($query);
-    }
 
     /************************************************
      *               RELATIONSHIPS
