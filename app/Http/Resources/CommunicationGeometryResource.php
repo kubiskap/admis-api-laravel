@@ -22,6 +22,9 @@ class CommunicationGeometryResource extends JsonResource
             $this->mergeWhen($isMap, [
                 'project_id' => $this->idProject,
                 'communication_id' => $this->idCommunication,
+                'phase_color' => $this->whenLoaded('project', function() {
+                    return $this->project->phase->phaseColor;
+                }),
             ]),
             'gps_n1' => $this->gpsN1,
             'gps_n2' => $this->gpsN2,

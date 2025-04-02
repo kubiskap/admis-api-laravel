@@ -429,10 +429,11 @@ class ProjectController extends Controller
                 // Filter only projects with no deletedDate
                 $q->whereNull('deletedDate');
             })
+            ->with(['project.phase'])
             ->select('idProject', 'idCommunication', 'gpsN1', 'gpsN2', 'gpsE1', 'gpsE2');
     
-        // Add geometryWgs if zoom level is less than 10
-        if ($zoom < 10) {
+        // Add geometryWgs if zoom level is more than 10
+        if ($zoom >= 11) {
             $query->addSelect('geometryWgs');
         }
     
@@ -440,14 +441,15 @@ class ProjectController extends Controller
         if (is_array($boundingBox) && count($boundingBox) === 4) {
             [$minLat, $minLng, $maxLat, $maxLng] = $boundingBox;
     
-            $lineString = new LineString([
-                new Point($minLat, $minLng),
-                new Point($minLat, $maxLng),
-                new Point($maxLat, $maxLng),
-                new Point($maxLat, $minLng),
-                new Point($minLat, $minLng), // Close the polygon
+            $polygon = new Polygon([
+                new LineString([
+                    new Point($minLat, $minLng),
+                    new Point($minLat, $maxLng),
+                    new Point($maxLat, $maxLng),
+                    new Point($maxLat, $minLng),
+                    new Point($minLat, $minLng), // Close the polygon
+                ])
             ]);
-            $polygon = new Polygon([$lineString]);
             
     
             // Apply the spatial filter
