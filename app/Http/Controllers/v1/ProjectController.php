@@ -439,7 +439,7 @@ class ProjectController extends Controller
     
         // If a valid bounding box is provided, apply the spatial filter
         if (is_array($boundingBox) && count($boundingBox) === 4) {
-            [$minLat, $minLng, $maxLat, $maxLng] = $boundingBox;
+            [$minLng, $minLat, $maxLng, $maxLat] = $boundingBox;
     
             $polygon = new Polygon([
                 new LineString([
@@ -450,7 +450,6 @@ class ProjectController extends Controller
                     new Point($minLat, $minLng), // Close the polygon
                 ])
             ]);
-            
     
             // Apply the spatial filter
             $query->whereNotNull('geometryWgs')
