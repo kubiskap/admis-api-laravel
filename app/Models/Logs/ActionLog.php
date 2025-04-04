@@ -80,4 +80,21 @@ class ActionLog extends Model
     {
         return $this->belongsTo(\App\Models\Project\ProjectVersion::class, 'idLocalProject', 'idLocalProject');
     }
+
+    /**
+     * Log an action.
+     *
+     * @param int $actionTypeId The ID of the action type.
+     * @param int $localProjectId The ID of the local project.
+     * @return ActionLog
+     */
+    public static function logAction(int $actionTypeId, int $localProjectId): self
+    {
+        return self::create([
+            'idActionType' => $actionTypeId,
+            'idLocalProject' => $localProjectId,
+            'username' => \Illuminate\Support\Facades\Auth::user()->username, // Automatically use the authenticated user's username
+            'created' => now(), // Automatically set the current timestamp
+        ]);
+    }
 }

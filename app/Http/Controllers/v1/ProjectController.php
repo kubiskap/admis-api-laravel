@@ -4,15 +4,16 @@ namespace App\Http\Controllers\v1;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 use App\Http\Resources\ProjectResource;
 use App\Http\Resources\ActionLogResource;
 use App\Http\Resources\CommunicationGeometryResource;
 
+use App\Models\Logs\ActionLog;
 use App\Models\Project\Project;
 use App\Models\Pivots\ProjectCommunication;
-use MatanYadaev\EloquentSpatial\Enums\Srid;
+
 use MatanYadaev\EloquentSpatial\Objects\Polygon;
 use MatanYadaev\EloquentSpatial\Objects\LineString;
 use MatanYadaev\EloquentSpatial\Objects\Point;
@@ -647,5 +648,38 @@ class ProjectController extends Controller
 
         // Return resource
         return ActionLogResource::collection($logs);
+    }
+
+    public function store(Request $request)
+    {
+        // Validate the incoming request
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255',
+            'idProjectType' => 'required|integer|exists:rangeProjectTypes,idProjectType',
+            'idProjectSubtype' => 'nullable|integer|exists:rangeProjectSubtypes,idProjectSubtype',
+            'idFinSource' => 'nullable|integer|exists:rangeFinancialSources,idFinSource',
+            'idPhase' => 'nullable|integer|exists:rangePhases,idPhase',
+            'inConcept' => 'nullable|boolean',
+            'priorityAtts' => 'nullable|json',
+            // Add other fields as necessary
+        ]);
+
+        // Create the project
+        $project = Project::create(array_merge($validatedData, [
+            'author' => Auth::user()->username, // Set the author as the current user
+            'editor' => Auth::user()->username, // Set the editor as the current user
+            'created' => now(), // Set the creation timestamp
+        ]));
+
+        // Log the action in ActionLog
+        ActionLog::create([
+            'idActionType' => 1, // Assuming 1 is the action type for "Create Project"
+            'idLocalProject' => $project->idLocalProject, // Assuming idLocalProject is the local project ID
+            'username' => Auth::user()->username, // Log the current user's username
+            'created' => now(), // Log the timestamp
+        ]);
+
+        // Return the created project as a resource
+        return new ProjectResource($project);
     }
 }

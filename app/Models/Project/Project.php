@@ -2,6 +2,7 @@
 
 namespace App\Models\Project;
 
+use App\Http\Resources\ProjectResource;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\{
     BelongsTo,
@@ -285,8 +286,27 @@ class Project extends Model
         return $this->belongsTo(\App\Models\Users\User::class, 'author', 'username');
     }
 
+    /************************************************
+     *                    METHODS
+     ************************************************/
+
     public function getRouteKeyName()
     {
         return 'idProject'; // use your custom key instead of 'id'
     }
+
+
+    public function createVersion()
+    {
+        $version = $this->versions()->create([
+            'idPhase' => $this->idPhase,
+            'assignments' => $this->assignments,
+            'idProject' => $this->idProject,
+            'created' => now(),
+            'historyDump' => json_encode(new ProjectResource($this)),
+        ]);            
+
+        $this->update(['idLocalProject' => $version->idLocalProject]);
+   }
+
 }
