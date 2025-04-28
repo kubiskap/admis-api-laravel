@@ -7,6 +7,19 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Users\User;
 
+/**
+ * Class AuthController
+ *
+ * Handles authentication related endpoints. This controller uses the User model and related resources to
+ * authenticate users, issue and refresh JWT tokens.
+ *
+ * @package App\Http\Controllers\v1
+ *
+ * @OA\Tag(
+ *     name="Authentication",
+ *     description="Endpoints for user authentication."
+ * )
+ */
 class AuthController extends APIBaseController
 {
     /**
@@ -16,36 +29,44 @@ class AuthController extends APIBaseController
      */
     public function __construct()
     {
+        // Controller constructor can be used to apply middleware if required.
     }
 
     /**
      * @OA\Post(
      *     path="/api/v1/login",
      *     tags={"Authentication"},
-     *     summary="Login to get JWT token",
-     *     description="Authenticates a user and returns a JWT token",
+     *     summary="Authenticate user & obtain JWT token",
+     *     description="Authenticates a user using their credentials and returns a JWT token. See the User model for details on user fields.",
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"username","password"},
-     *             @OA\Property(property="username", type="string", format="username"),
-     *             @OA\Property(property="password", type="string", format="password")
+     *             required={"username", "password"},
+     *             @OA\Property(property="username", type="string", description="User's unique username"),
+     *             @OA\Property(property="password", type="string", description="The user's password")
      *         )
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Successful login",
+     *         description="User successfully authenticated",
      *         @OA\JsonContent(
-     *             @OA\Property(property="access_token", type="string"),
-     *             @OA\Property(property="token_type", type="string", example="bearer"),
-     *             @OA\Property(property="expires_in", type="integer")
+     *             @OA\Property(property="access_token", type="string", description="JWT access token"),
+     *             @OA\Property(property="token_type", type="string", example="bearer", description="Token type"),
+     *             @OA\Property(property="expires_in", type="integer", description="Time in seconds until the token expires")
      *         )
      *     ),
      *     @OA\Response(
      *         response=401,
-     *         description="Invalid credentials"
+     *         description="Invalid credentials",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="error", type="string", example="Unauthorized")
+     *         )
      *     )
      * )
+     *
+     * @param Request $request
+     *
+     * @return \Illuminate\Http\JsonResponse
      */
     public function login(Request $request)
     {
@@ -62,32 +83,34 @@ class AuthController extends APIBaseController
      * @OA\Get(
      *     path="/api/v1/me",
      *     tags={"Authentication"},
-     *     summary="Retrieve authenticated user details",
-     *     description="Fetches the details of the currently authenticated user based on the provided JWT token.",
+     *     summary="Retrieve details of the authenticated user",
+     *     description="Returns the details of the authenticated user. Data is based on the User model. Refer to App\Models\Users\User for field definitions.",
      *     security={{"bearerAuth":{}}},
      *     @OA\Response(
      *         response=200,
-     *         description="User information retrieved successfully.",
+     *         description="Authenticated user retrieved successfully",
      *         @OA\JsonContent(
      *             @OA\Property(property="username", type="string", description="User's unique identifier"),
-     *             @OA\Property(property="name", type="string", description="User's full name"),
-     *             @OA\Property(property="email", type="string", format="email", description="User's email address"),
-     *             @OA\Property(property="idOu", type="string", description="User's organization unit identifier"),
-     *             @OA\Property(property="idRoleType", type="string", description="User's role type identifier"),
-     *             @OA\Property(property="idAuthorityType", type="string", description="User's authority type identifier"),
-     *             @OA\Property(property="accessDenied", type="boolean", description="Whether user access is denied"),
-     *             @OA\Property(property="idReportConfig", type="string", description="User's report configuration identifier"),
-     *             @OA\Property(property="editorReport", type="boolean", description="Whether user can edit reports")
+     *             @OA\Property(property="name", type="string", description="Full name of the user"),
+     *             @OA\Property(property="email", type="string", format="email", description="Email address"),
+     *             @OA\Property(property="idOu", type="integer", description="Organizational unit ID"),
+     *             @OA\Property(property="idRoleType", type="integer", description="Role type identifier"),
+     *             @OA\Property(property="idAuthorityType", type="integer", description="Authority type identifier"),
+     *             @OA\Property(property="accessDenied", type="boolean", description="Access status"),
+     *             @OA\Property(property="idReportConfig", type="integer", description="Report configuration identifier"),
+     *             @OA\Property(property="editorReport", type="boolean", description="Flag for report editor rights")
      *         )
      *     ),
      *     @OA\Response(
      *         response=401,
-     *         description="Unauthenticated. Token is missing or invalid.",
+     *         description="Unauthenticated - token is missing or invalid",
      *         @OA\JsonContent(
      *             @OA\Property(property="error", type="string", example="Unauthorized")
      *         )
      *     )
      * )
+     *
+     * @return \Illuminate\Http\JsonResponse
      */
     public function me()
     {
@@ -98,24 +121,26 @@ class AuthController extends APIBaseController
      * @OA\Post(
      *     path="/api/v1/logout",
      *     tags={"Authentication"},
-     *     summary="Logout user and invalidate token",
+     *     summary="Logout user and invalidate JWT token",
      *     description="Logs out the authenticated user and invalidates their JWT token.",
      *     security={{"bearerAuth":{}}},
      *     @OA\Response(
      *         response=200,
-     *         description="Logout successful. Token invalidated.",
+     *         description="User logged out successfully",
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string", example="Successfully logged out")
      *         )
      *     ),
      *     @OA\Response(
      *         response=401,
-     *         description="Unauthenticated. Token is missing or invalid.",
+     *         description="Unauthenticated - token is missing or invalid",
      *         @OA\JsonContent(
      *             @OA\Property(property="error", type="string", example="Unauthorized")
      *         )
      *     )
      * )
+     *
+     * @return \Illuminate\Http\JsonResponse
      */
     public function logout()
     {
@@ -129,25 +154,27 @@ class AuthController extends APIBaseController
      *     path="/api/v1/refresh",
      *     tags={"Authentication"},
      *     summary="Refresh JWT token",
-     *     description="Generates a new JWT token using the current valid token. The old token will be invalidated.",
+     *     description="Generates a new JWT token using the current valid token, invalidating the old one. See the User model for token claim structure.",
      *     security={{"bearerAuth":{}}},
      *     @OA\Response(
      *         response=200,
-     *         description="Token refreshed successfully. Returns the new token.",
+     *         description="JWT token refreshed successfully",
      *         @OA\JsonContent(
      *             @OA\Property(property="access_token", type="string", description="New JWT access token"),
-     *             @OA\Property(property="token_type", type="string", example="bearer", description="Token type"),
+     *             @OA\Property(property="token_type", type="string", example="bearer", description="Type of token"),
      *             @OA\Property(property="expires_in", type="integer", description="Token expiration time in seconds")
      *         )
      *     ),
      *     @OA\Response(
      *         response=401,
-     *         description="Unauthenticated. Token is missing or invalid.",
+     *         description="Unauthenticated - token is missing or invalid",
      *         @OA\JsonContent(
      *             @OA\Property(property="error", type="string", example="Unauthorized")
      *         )
      *     )
      * )
+     *
+     * @return \Illuminate\Http\JsonResponse
      */
     public function refresh()
     {
@@ -155,9 +182,9 @@ class AuthController extends APIBaseController
     }
 
     /**
-     * Get the token array structure.
+     * Formats the JWT token response.
      *
-     * @param  string $token
+     * @param string $token The JWT token.
      *
      * @return \Illuminate\Http\JsonResponse
      */
@@ -165,8 +192,8 @@ class AuthController extends APIBaseController
     {
         return response()->json([
             'access_token' => $token,
-            'token_type' => 'bearer',
-            'expires_in' => auth()->factory()->getTTL() * 60
+            'token_type'   => 'bearer',
+            'expires_in'   => auth()->factory()->getTTL() * 60
         ]);
     }
 }

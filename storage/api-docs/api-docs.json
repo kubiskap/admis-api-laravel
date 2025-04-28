@@ -17,8 +17,8 @@
                 "tags": [
                     "Authentication"
                 ],
-                "summary": "Login to get JWT token",
-                "description": "Authenticates a user and returns a JWT token",
+                "summary": "Authenticate user & obtain JWT token",
+                "description": "Authenticates a user using their credentials and returns a JWT token. See the User model for details on user fields.",
                 "operationId": "bb41d9524d1781b0e0f057673979e5c7",
                 "requestBody": {
                     "required": true,
@@ -31,12 +31,12 @@
                                 ],
                                 "properties": {
                                     "username": {
-                                        "type": "string",
-                                        "format": "username"
+                                        "description": "User's unique username",
+                                        "type": "string"
                                     },
                                     "password": {
-                                        "type": "string",
-                                        "format": "password"
+                                        "description": "The user's password",
+                                        "type": "string"
                                     }
                                 },
                                 "type": "object"
@@ -46,19 +46,22 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Successful login",
+                        "description": "User successfully authenticated",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
                                         "access_token": {
+                                            "description": "JWT access token",
                                             "type": "string"
                                         },
                                         "token_type": {
+                                            "description": "Token type",
                                             "type": "string",
                                             "example": "bearer"
                                         },
                                         "expires_in": {
+                                            "description": "Time in seconds until the token expires",
                                             "type": "integer"
                                         }
                                     },
@@ -68,7 +71,20 @@
                         }
                     },
                     "401": {
-                        "description": "Invalid credentials"
+                        "description": "Invalid credentials",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Unauthorized"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -78,12 +94,12 @@
                 "tags": [
                     "Authentication"
                 ],
-                "summary": "Retrieve authenticated user details",
-                "description": "Fetches the details of the currently authenticated user based on the provided JWT token.",
+                "summary": "Retrieve details of the authenticated user",
+                "description": "Returns the details of the authenticated user. Data is based on the User model. Refer to App\\Models\\Users\\User for field definitions.",
                 "operationId": "7029e3e8d2d6c300d23adff07cfb497e",
                 "responses": {
                     "200": {
-                        "description": "User information retrieved successfully.",
+                        "description": "Authenticated user retrieved successfully",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -93,36 +109,36 @@
                                             "type": "string"
                                         },
                                         "name": {
-                                            "description": "User's full name",
+                                            "description": "Full name of the user",
                                             "type": "string"
                                         },
                                         "email": {
-                                            "description": "User's email address",
+                                            "description": "Email address",
                                             "type": "string",
                                             "format": "email"
                                         },
                                         "idOu": {
-                                            "description": "User's organization unit identifier",
-                                            "type": "string"
+                                            "description": "Organizational unit ID",
+                                            "type": "integer"
                                         },
                                         "idRoleType": {
-                                            "description": "User's role type identifier",
-                                            "type": "string"
+                                            "description": "Role type identifier",
+                                            "type": "integer"
                                         },
                                         "idAuthorityType": {
-                                            "description": "User's authority type identifier",
-                                            "type": "string"
+                                            "description": "Authority type identifier",
+                                            "type": "integer"
                                         },
                                         "accessDenied": {
-                                            "description": "Whether user access is denied",
+                                            "description": "Access status",
                                             "type": "boolean"
                                         },
                                         "idReportConfig": {
-                                            "description": "User's report configuration identifier",
-                                            "type": "string"
+                                            "description": "Report configuration identifier",
+                                            "type": "integer"
                                         },
                                         "editorReport": {
-                                            "description": "Whether user can edit reports",
+                                            "description": "Flag for report editor rights",
                                             "type": "boolean"
                                         }
                                     },
@@ -132,7 +148,7 @@
                         }
                     },
                     "401": {
-                        "description": "Unauthenticated. Token is missing or invalid.",
+                        "description": "Unauthenticated - token is missing or invalid",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -160,12 +176,12 @@
                 "tags": [
                     "Authentication"
                 ],
-                "summary": "Logout user and invalidate token",
+                "summary": "Logout user and invalidate JWT token",
                 "description": "Logs out the authenticated user and invalidates their JWT token.",
                 "operationId": "944f39c800d7ae24b55b18868e032d07",
                 "responses": {
                     "200": {
-                        "description": "Logout successful. Token invalidated.",
+                        "description": "User logged out successfully",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -181,7 +197,7 @@
                         }
                     },
                     "401": {
-                        "description": "Unauthenticated. Token is missing or invalid.",
+                        "description": "Unauthenticated - token is missing or invalid",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -210,11 +226,11 @@
                     "Authentication"
                 ],
                 "summary": "Refresh JWT token",
-                "description": "Generates a new JWT token using the current valid token. The old token will be invalidated.",
+                "description": "Generates a new JWT token using the current valid token, invalidating the old one. See the User model for token claim structure.",
                 "operationId": "ffaeee28eb14655973d0c37360e5d73d",
                 "responses": {
                     "200": {
-                        "description": "Token refreshed successfully. Returns the new token.",
+                        "description": "JWT token refreshed successfully",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -224,7 +240,7 @@
                                             "type": "string"
                                         },
                                         "token_type": {
-                                            "description": "Token type",
+                                            "description": "Type of token",
                                             "type": "string",
                                             "example": "bearer"
                                         },
@@ -239,7 +255,7 @@
                         }
                     },
                     "401": {
-                        "description": "Unauthenticated. Token is missing or invalid.",
+                        "description": "Unauthenticated - token is missing or invalid",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -267,27 +283,27 @@
                 "tags": [
                     "Resources"
                 ],
-                "summary": "Get resources",
-                "description": "Retrieves resources from the specified model type (enum or view). Supports filtering, sorting, and pagination.",
+                "summary": "Get resource(s)",
+                "description": "Retrieves a single resource by ID or a collection of resources from the specified model type. Supports filtering, sorting, and pagination.",
                 "operationId": "6d12f9c8bbe9514caa64c8ce45563087",
                 "parameters": [
                     {
                         "name": "type",
                         "in": "path",
-                        "description": "Resource type (enum or view)",
+                        "description": "Resource type: either 'enums' or 'views'",
                         "required": true,
                         "schema": {
                             "type": "string",
                             "enum": [
-                                "enum",
-                                "view"
+                                "enums",
+                                "views"
                             ]
                         }
                     },
                     {
                         "name": "model",
                         "in": "path",
-                        "description": "Model name (e.g., 'roleType', 'projectDetails', etc.)",
+                        "description": "Model name (e.g., 'roleType', 'projectDetails')",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -296,7 +312,7 @@
                     {
                         "name": "id",
                         "in": "path",
-                        "description": "Resource identifier (optional - if not provided, returns all resources)",
+                        "description": "Resource identifier; if omitted, returns all resources",
                         "required": false,
                         "schema": {
                             "type": "string"
@@ -334,7 +350,7 @@
                     {
                         "name": "filter_value",
                         "in": "query",
-                        "description": "Value to filter by (uses partial matching)",
+                        "description": "Value to use for filtering (partial matching)",
                         "required": false,
                         "schema": {
                             "type": "string"
@@ -343,7 +359,7 @@
                     {
                         "name": "sort_field",
                         "in": "query",
-                        "description": "Field to sort by",
+                        "description": "Field to sort by; defaults to primary key",
                         "required": false,
                         "schema": {
                             "type": "string"
@@ -362,7 +378,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Successful operation",
+                        "description": "Resource(s) retrieved successfully",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -395,7 +411,7 @@
                         }
                     },
                     "404": {
-                        "description": "Resource type, model, or resource not found",
+                        "description": "Model or resource not found",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -438,7 +454,7 @@
                     "Resources"
                 ],
                 "summary": "Update a resource",
-                "description": "Updates an existing resource with the provided data",
+                "description": "Updates an existing resource with provided data.",
                 "operationId": "2c279055f16965db03eb821e5dedd4f7",
                 "parameters": [
                     {
@@ -449,15 +465,15 @@
                         "schema": {
                             "type": "string",
                             "enum": [
-                                "enum",
-                                "view"
+                                "enums",
+                                "views"
                             ]
                         }
                     },
                     {
                         "name": "model",
                         "in": "path",
-                        "description": "Model name (e.g., 'roleType', 'projectDetails', etc.)",
+                        "description": "Model name (e.g., 'roleType')",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -560,7 +576,7 @@
                     "Resources"
                 ],
                 "summary": "Delete a resource",
-                "description": "Permanently deletes the specified resource",
+                "description": "Permanently deletes the specified resource.",
                 "operationId": "ec66d63a232ab09c1d15a9430a2c3ba0",
                 "parameters": [
                     {
@@ -571,15 +587,15 @@
                         "schema": {
                             "type": "string",
                             "enum": [
-                                "enum",
-                                "view"
+                                "enums",
+                                "views"
                             ]
                         }
                     },
                     {
                         "name": "model",
                         "in": "path",
-                        "description": "Model name (e.g., 'roleType', 'projectDetails', etc.)",
+                        "description": "Model name (e.g., 'roleType')",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -658,26 +674,25 @@
                     "Resources"
                 ],
                 "summary": "Create a new resource",
-                "description": "Creates a new resource in the specified model type (enum or view)",
+                "description": "Creates a new resource in the specified model type (enum).",
                 "operationId": "3774b503037aae6d3e05dd671513a58c",
                 "parameters": [
                     {
                         "name": "type",
                         "in": "path",
-                        "description": "Resource type (enum or view)",
+                        "description": "Resource type: enums",
                         "required": true,
                         "schema": {
                             "type": "string",
                             "enum": [
-                                "enum",
-                                "view"
+                                "enums"
                             ]
                         }
                     },
                     {
                         "name": "model",
                         "in": "path",
-                        "description": "Model name (e.g., 'roleType', 'projectDetails', etc.)",
+                        "description": "Model name (e.g., 'roleType')",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -951,8 +966,8 @@
                     "Projects"
                 ],
                 "summary": "Get project details",
-                "description": "Retrieves details of a single project by ID",
-                "operationId": "show",
+                "description": "Retrieves details of a single project by ID.",
+                "operationId": "showProject",
                 "parameters": [
                     {
                         "name": "id",
@@ -970,221 +985,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "properties": {
-                                        "data": {
-                                            "properties": {
-                                                "id": {
-                                                    "type": "integer"
-                                                },
-                                                "name": {
-                                                    "type": "string"
-                                                },
-                                                "type": {
-                                                    "type": "string"
-                                                },
-                                                "subtype": {
-                                                    "type": "string",
-                                                    "nullable": true
-                                                },
-                                                "in_concept": {
-                                                    "type": "boolean"
-                                                },
-                                                "phase": {
-                                                    "properties": {
-                                                        "id": {
-                                                            "type": "integer"
-                                                        },
-                                                        "name": {
-                                                            "type": "string"
-                                                        },
-                                                        "color": {
-                                                            "type": "string"
-                                                        },
-                                                        "color_class": {
-                                                            "type": "string"
-                                                        }
-                                                    },
-                                                    "type": "object"
-                                                },
-                                                "editor": {
-                                                    "properties": {
-                                                        "username": {
-                                                            "type": "string"
-                                                        },
-                                                        "name": {
-                                                            "type": "string"
-                                                        }
-                                                    },
-                                                    "type": "object"
-                                                },
-                                                "author": {
-                                                    "properties": {
-                                                        "username": {
-                                                            "type": "string"
-                                                        },
-                                                        "name": {
-                                                            "type": "string"
-                                                        }
-                                                    },
-                                                    "type": "object"
-                                                },
-                                                "priority_attributes": {
-                                                    "type": "object"
-                                                },
-                                                "financial_source": {
-                                                    "type": "string"
-                                                },
-                                                "financial_source_pd": {
-                                                    "type": "string"
-                                                },
-                                                "areas": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "string"
-                                                    }
-                                                },
-                                                "communications": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "properties": {
-                                                            "name": {
-                                                                "type": "string"
-                                                            },
-                                                            "stationing_from": {
-                                                                "type": "number",
-                                                                "format": "float"
-                                                            },
-                                                            "stationing_to": {
-                                                                "type": "number",
-                                                                "format": "float"
-                                                            },
-                                                            "gps_n1": {
-                                                                "type": "number",
-                                                                "format": "float"
-                                                            },
-                                                            "gps_n2": {
-                                                                "type": "number",
-                                                                "format": "float"
-                                                            },
-                                                            "gps_e1": {
-                                                                "type": "number",
-                                                                "format": "float"
-                                                            },
-                                                            "gps_e2": {
-                                                                "type": "number",
-                                                                "format": "float"
-                                                            },
-                                                            "allPointsWgs": {
-                                                                "type": "string",
-                                                                "nullable": true
-                                                            },
-                                                            "allPointsSjtsk": {
-                                                                "type": "string",
-                                                                "nullable": true
-                                                            },
-                                                            "geometryWgs": {
-                                                                "type": "string",
-                                                                "nullable": true
-                                                            },
-                                                            "geometrySjtsk": {
-                                                                "type": "string",
-                                                                "nullable": true
-                                                            }
-                                                        },
-                                                        "type": "object"
-                                                    }
-                                                },
-                                                "contacts": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "properties": {
-                                                            "id": {
-                                                                "type": "integer"
-                                                            },
-                                                            "name": {
-                                                                "type": "string"
-                                                            },
-                                                            "phone": {
-                                                                "type": "string"
-                                                            },
-                                                            "email": {
-                                                                "type": "string"
-                                                            },
-                                                            "type": {
-                                                                "properties": {
-                                                                    "name": {
-                                                                        "type": "string"
-                                                                    }
-                                                                },
-                                                                "type": "object"
-                                                            }
-                                                        },
-                                                        "type": "object"
-                                                    }
-                                                },
-                                                "companies": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "properties": {
-                                                            "id": {
-                                                                "type": "integer"
-                                                            },
-                                                            "name": {
-                                                                "type": "string"
-                                                            },
-                                                            "address": {
-                                                                "type": "string"
-                                                            },
-                                                            "ic": {
-                                                                "type": "string"
-                                                            },
-                                                            "dic": {
-                                                                "type": "string"
-                                                            },
-                                                            "www": {
-                                                                "type": "string"
-                                                            },
-                                                            "type": {
-                                                                "properties": {
-                                                                    "name": {
-                                                                        "type": "string"
-                                                                    }
-                                                                },
-                                                                "type": "object"
-                                                            }
-                                                        },
-                                                        "type": "object"
-                                                    }
-                                                },
-                                                "prices": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "object"
-                                                    }
-                                                },
-                                                "deadlines": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "object"
-                                                    }
-                                                },
-                                                "suspensions": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "object"
-                                                    }
-                                                },
-                                                "tasks": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "object"
-                                                    }
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
+                                    "$ref": "#/components/schemas/ProjectResource"
                                 }
                             }
                         }
@@ -1201,6 +1002,294 @@
                         "bearerAuth": []
                     }
                 ]
+            },
+            "put": {
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "Update a project",
+                "description": "Updates project fields and creates a new version upon modification.",
+                "operationId": "updateProject",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Project ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "maxLength": 255
+                                    },
+                                    "idProjectType": {
+                                        "type": "integer"
+                                    },
+                                    "idProjectSubtype": {
+                                        "type": "integer"
+                                    },
+                                    "idFinSource": {
+                                        "type": "integer"
+                                    },
+                                    "idPhase": {
+                                        "type": "integer"
+                                    },
+                                    "inConcept": {
+                                        "type": "boolean"
+                                    },
+                                    "priorityAtts": {
+                                        "type": "string",
+                                        "format": "json"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Project updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProjectResource"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Project not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/projects/search": {
+            "post": {
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "Search projects with filters",
+                "description": "Search projects using various filters provided in the request body. Only projects with no deletedDate are returned.",
+                "operationId": "searchProjects",
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "page": {
+                                        "description": "Page number",
+                                        "type": "integer",
+                                        "default": 1
+                                    },
+                                    "per_page": {
+                                        "description": "Number of items per page",
+                                        "type": "integer",
+                                        "default": 15
+                                    },
+                                    "sort_field": {
+                                        "description": "Field to sort by",
+                                        "type": "string",
+                                        "default": "idProject"
+                                    },
+                                    "sort_order": {
+                                        "description": "Sort order: 1 for ascending, -1 for descending",
+                                        "type": "integer",
+                                        "default": 1
+                                    },
+                                    "filter": {
+                                        "description": "Filter object for project level and related filters",
+                                        "properties": {
+                                            "project": {
+                                                "description": "Per-project filters",
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "editor": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "ou": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "type": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "subtype": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "phase": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "financialSource": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "integer"
+                                                        }
+                                                    }
+                                                },
+                                                "type": "object"
+                                            },
+                                            "related": {
+                                                "description": "Filters for related resources",
+                                                "properties": {
+                                                    "communications": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "areas": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "integer"
+                                                        }
+                                                    }
+                                                },
+                                                "type": "object"
+                                            },
+                                            "companies": {
+                                                "description": "Filters for company relationships",
+                                                "properties": {
+                                                    "supervisor": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "builder": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "project": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "integer"
+                                                        }
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProjectResource"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/projects/map": {
+            "get": {
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "Retrieve communications geometry",
+                "description": "Retrieves a collection of project communication geometries based on spatial filters.",
+                "operationId": "mapCommunications",
+                "parameters": [
+                    {
+                        "name": "filter[spatial][bounding_box]",
+                        "in": "query",
+                        "description": "Bounding box array [minLng, minLat, maxLng, maxLat]",
+                        "required": false,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "number"
+                            }
+                        }
+                    },
+                    {
+                        "name": "filter[spatial][zoom]",
+                        "in": "query",
+                        "description": "Zoom level",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CommunicationGeometryResource"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/api/v1/projects/{id}/editors-history": {
@@ -1208,14 +1297,14 @@
                 "tags": [
                     "Projects"
                 ],
-                "summary": "Get distinct authors who edited the project with their latest edit date",
-                "description": "Retrieves a list of unique authors who have created versions of the project, including their latest edit date",
+                "summary": "Get distinct project editors with latest edit date",
+                "description": "Retrieves a list of unique project editors along with their latest edit date.",
                 "operationId": "getProjectEditorsHistory",
                 "parameters": [
                     {
                         "name": "id",
                         "in": "path",
-                        "description": "Project ID to retrieve editors for",
+                        "description": "Project ID",
                         "required": true,
                         "schema": {
                             "type": "integer"
@@ -1265,13 +1354,13 @@
                     "Projects"
                 ],
                 "summary": "Get project action logs",
-                "description": "Retrieves a list of all actions performed on the project, including action type, user, and timestamp",
+                "description": "Retrieves a list of project action logs including user, action type, and timestamp.",
                 "operationId": "getProjectLog",
                 "parameters": [
                     {
                         "name": "id",
                         "in": "path",
-                        "description": "Project ID to retrieve logs for",
+                        "description": "Project ID",
                         "required": true,
                         "schema": {
                             "type": "integer"
@@ -1280,7 +1369,7 @@
                     {
                         "name": "per_page",
                         "in": "query",
-                        "description": "Number of items per page",
+                        "description": "Items per page",
                         "required": false,
                         "schema": {
                             "type": "integer",
@@ -1290,7 +1379,7 @@
                     {
                         "name": "sort_field",
                         "in": "query",
-                        "description": "Field to sort by (date, user.username, action, project.name)",
+                        "description": "Field to sort by",
                         "required": false,
                         "schema": {
                             "type": "string",
@@ -1314,84 +1403,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "properties": {
-                                                    "id": {
-                                                        "type": "integer"
-                                                    },
-                                                    "date": {
-                                                        "type": "string",
-                                                        "format": "date-time"
-                                                    },
-                                                    "user": {
-                                                        "properties": {
-                                                            "username": {
-                                                                "type": "string"
-                                                            },
-                                                            "name": {
-                                                                "type": "string"
-                                                            }
-                                                        },
-                                                        "type": "object"
-                                                    },
-                                                    "action": {
-                                                        "type": "string"
-                                                    },
-                                                    "project": {
-                                                        "properties": {
-                                                            "id": {
-                                                                "type": "integer"
-                                                            },
-                                                            "name": {
-                                                                "type": "string"
-                                                            },
-                                                            "phase": {
-                                                                "type": "string"
-                                                            }
-                                                        },
-                                                        "type": "object"
-                                                    }
-                                                },
-                                                "type": "object"
-                                            }
-                                        },
-                                        "meta": {
-                                            "properties": {
-                                                "current_page": {
-                                                    "type": "integer"
-                                                },
-                                                "from": {
-                                                    "type": "integer"
-                                                },
-                                                "last_page": {
-                                                    "type": "integer"
-                                                },
-                                                "links": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "object"
-                                                    }
-                                                },
-                                                "path": {
-                                                    "type": "string"
-                                                },
-                                                "per_page": {
-                                                    "type": "integer"
-                                                },
-                                                "to": {
-                                                    "type": "integer"
-                                                },
-                                                "total": {
-                                                    "type": "integer"
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
+                                    "$ref": "#/components/schemas/ActionLogResource"
                                 }
                             }
                         }
@@ -1416,6 +1428,7 @@
                     "Projects"
                 ],
                 "summary": "Create a new project",
+                "description": "Creates a new project.",
                 "operationId": "storeProject",
                 "parameters": [
                     {
@@ -4298,7 +4311,7 @@
     "tags": [
         {
             "name": "Authentication",
-            "description": "Authentication endpoints"
+            "description": "Endpoints for user authentication."
         },
         {
             "name": "Users",
@@ -4306,11 +4319,11 @@
         },
         {
             "name": "Projects",
-            "description": "API endpoints for managing projects"
+            "description": "API endpoints for managing projects."
         },
         {
             "name": "Resources",
-            "description": "Enum and View resource endpoints"
+            "description": "Endpoints for enum and view resources."
         },
         {
             "name": "External API",
