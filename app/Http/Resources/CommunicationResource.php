@@ -5,6 +5,35 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @OA\Schema(
+ *     schema="CommunicationResource",
+ *     type="object",
+ *     title="Communication Resource",
+ *     required={"name", "stationing_from", "stationing_to"},
+ *     @OA\Property(
+ *         property="name",
+ *         type="string",
+ *         description="Communication name"
+ *     ),
+ *     @OA\Property(
+ *         property="stationing_from",
+ *         type="number",
+ *         description="Stationing from value"
+ *     ),
+ *     @OA\Property(
+ *         property="stationing_to",
+ *         type="number",
+ *         description="Stationing to value"
+ *     ),
+ *     @OA\Property(
+ *         property="geometry",
+ *         type="string",
+ *         description="Geometry information",
+ *         nullable=true
+ *     )
+ * )
+ */
 class CommunicationResource extends JsonResource
 {
 

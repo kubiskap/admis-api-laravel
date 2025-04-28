@@ -650,9 +650,98 @@ class ProjectController extends Controller
         return ActionLogResource::collection($logs);
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/v1/projects",
+     *     operationId="storeProject",
+     *     tags={"Projects"},
+     *     summary="Create a new project",
+     *     @OA\Parameter(
+     *         name="type",
+     *         in="query",
+     *         description="Project category (namet, stavba, udrzba)",
+     *         required=true,
+     *         @OA\Schema(type="string", enum={"namet","stavba","udrzba"})
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"name","subject","project_type","project_subtype","editor","areas","communications","prices","fin_source"},
+     *             @OA\Property(property="name", type="string", maxLength=255),
+     *             @OA\Property(property="subject", type="string"),
+     *             @OA\Property(property="project_type", type="integer", description="ID of project type"),
+     *             @OA\Property(property="project_subtype", type="integer", description="ID of project subtype"),
+     *             @OA\Property(property="editor", type="string", description="Username of editor"),
+     *             @OA\Property(
+     *                 property="areas",
+     *                 type="array",
+     *                 @OA\Items(type="integer", description="ID of area")
+     *             ),
+     *             @OA\Property(
+     *                 property="communications",
+     *                 type="array",
+     *                 @OA\Items(
+     *                     type="object",
+     *                     required={"id","stationing_from","stationing_to","gps_n1","gps_n2","gps_e1","gps_e2"},
+     *                     @OA\Property(property="id", type="integer", description="ID of communication"),
+     *                     @OA\Property(property="stationing_from", type="number"),
+     *                     @OA\Property(property="stationing_to", type="number"),
+     *                     @OA\Property(property="gps_n1", type="number"),
+     *                     @OA\Property(property="gps_n2", type="number"),
+     *                     @OA\Property(property="gps_e1", type="number"),
+     *                     @OA\Property(property="gps_e2", type="number"),
+     *                     @OA\Property(property="geometry", type="string", nullable=true)
+     *                 )
+     *             ),
+     *             @OA\Property(
+     *                 property="objects",
+     *                 type="array",
+     *                 nullable=true,
+     *                 @OA\Items(
+     *                     type="object",
+     *                     required={"type_id","id","name"},
+     *                     @OA\Property(property="type_id", type="integer", description="ID of object type"),
+     *                     @OA\Property(property="id", type="integer", description="ID of object"),
+     *                     @OA\Property(property="name", type="string")
+     *                 )
+     *             ),
+     *             @OA\Property(
+     *                 property="prices",
+     *                 type="array",
+     *                 @OA\Items(
+     *                     type="object",
+     *                     required={"type_id","id","value"},
+     *                     @OA\Property(property="type_id", type="integer", description="ID of price type"),
+     *                     @OA\Property(property="id", type="integer", description="ID of price"),
+     *                     @OA\Property(property="value", type="number")
+     *                 )
+     *             ),
+     *             @OA\Property(property="fin_source", type="integer", description="ID of financial source"),
+     *             @OA\Property(property="fin_source_pd", type="integer", description="ID of project documentation source", nullable=true),
+     *             @OA\Property(
+     *                 property="relations",
+     *                 type="array",
+     *                 nullable=true,
+     *                 @OA\Items(
+     *                     type="object",
+     *                     required={"type_id","id"},
+     *                     @OA\Property(property="type_id", type="integer", description="ID of relation type"),
+     *                     @OA\Property(property="id", type="integer", description="ID of related project")
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Project created",
+     *         @OA\JsonContent(ref="#/components/schemas/ProjectResource")
+     *     ),
+     *     @OA\Response(response=400, description="Invalid input"),
+     *     @OA\Response(response=401, description="Unauthorized")
+     * )
+     */
     public function store(Request $request)
     {
-
         $type = $request->query('type');
 
         // Validate the incoming request
@@ -665,7 +754,7 @@ class ProjectController extends Controller
             'areas' => 'required|array',
             'areas.*' => 'integer|exists:rangeAreas,idArea',
             'communications' => 'required|array',
-            'communications.*.idCommunication' => 'required|integer|exists:rangeCommunications,idCommunication',
+            'communications.*.id' => 'required|integer|exists:rangeCommunications,idCommunication',
             'communications.*.stationing_from' => 'required|numeric',
             'communications.*.stationing_to' => 'required|numeric',
             'communications.*.gps_n1' => 'required|numeric',
@@ -674,30 +763,27 @@ class ProjectController extends Controller
             'communications.*.gps_e2' => 'required|numeric',
             'communications.*.geometry' => 'nullable|string',
             'objects' => 'nullable|array',
-            'objects.*.idObjectType' => 'required_with:objects|integer|exists:rangeObjectTypes,idObjectType',
-            'objects.*.idObject' => 'required_with:objects|integer|exists:rangeObjects,idObject',
+            'objects.*.type_id' => 'required_with:objects|integer|exists:rangeObjectTypes,idObjectType',
+            'objects.*.id' => 'required_with:objects|integer|exists:rangeObjects,idObject',
+            'objects.*.name' => 'required_with:objects|string',
             'prices' => 'required|array',
-            'prices.*.idPriceType' => 'required_with:prices|integer|exists:rangePriceTypes,idPriceType',
-            'prices.*.idPrice' => 'required_with:prices|integer|exists:rangePrices,idPrice',
+            'prices.*.type_id' => 'required_with:prices|integer|exists:rangePriceTypes,idPriceType',
+            'prices.*.id' => 'required_with:prices|integer|exists:rangePrices,idPrice',
             'prices.*.value' => 'required_with:prices|numeric',
             'fin_source' => 'required|integer|exists:rangeFinancialSources,idFinSource',
             'relations' => 'nullable|array',
-            'relations.*.idRelationType' => 'required_with:relations|integer|exists:rangeRelationTypes,idRelationType',
-            'relations.*.idProjectRelation' => 'required_with:relations|integer|exists:projects,idProject',
+            'relations.*.type_id' => 'required_with:relations|integer|exists:rangeRelationTypes,idRelationType',
+            'relations.*.id' => 'required_with:relations|integer|exists:projects,idProject',
         ];
 
-        // Add rules for project-specific fields
-        if ($type === 'namet' || $type === 'stavba' ) {
+        if ($type === 'namet' || $type === 'stavba') {
             $rules['fin_source_pd'] = 'required|integer|exists:rangeFinancialSources,idFinSource';
-        }
-        elseif ($type === 'udrzba') {
+        } elseif ($type === 'udrzba') {
             $rules['fin_source_pd'] = 'nullable|integer|exists:rangeFinancialSources,idFinSource';
-        }
-        else {
+        } else {
             return response()->json(['error' => 'Invalid project type'], 400);
         }
 
-        //Validate the request
         $validatedData = $request->validate($rules);
 
         // Create the project
@@ -721,15 +807,14 @@ class ProjectController extends Controller
             'inConcept' => false,
         ]);
 
-        // Versionate the project
         $project->createVersion();
 
-        // Attach areas to the project
+        // Attach areas
         $project->areas()->sync($validatedData['areas']);
 
-        // Attach communications to the project
+        // Attach communications
         foreach ($validatedData['communications'] as $communication) {
-            $project->communications()->attach($communication['idCommunication'], [
+            $project->communications()->attach($communication['id'], [
                 'stationingFrom' => $communication['stationing_from'],
                 'stationingTo' => $communication['stationing_to'],
                 'gpsN1' => $communication['gps_n1'],
@@ -740,37 +825,42 @@ class ProjectController extends Controller
             ]);
         }
 
-        foreach ($validatedData['prices'] as $price) {
-            $project->prices()->attach($price['idPrice'], [
-                'idPriceType' => $price['idPriceType'],
-                'value' => $price['value'],
-            ]);
-        }
-
-        
-
-        // Insert into project relations
+        // Attach relations
         if (!empty($validatedData['relations'])) {
             foreach ($validatedData['relations'] as $relation) {
-                \App\Models\Project\ProjectRelation::create([
+                $project->relatedProjects()->attach($relation['id'], [
+                    'idRelationType' => $relation['type_id'],
                     'username' => Auth::user()->username,
-                    'idProject' => $project->idProject,
-                    'idRelationType' => $relation['idRelationType'],
-                    'idProjectRelation' => $relation['idProjectRelation'],
                     'created' => now(),
                 ]);
             }
         }
 
-        // Log the action in ActionLog
+        // Attach prices
+        foreach ($validatedData['prices'] as $price) {
+            $project->prices()->attach($price['id'], [
+                'idPriceType' => $price['type_id'],
+                'value' => $price['value'],
+            ]);
+        }
+
+        // Attach objects
+        if (!empty($validatedData['objects'])) {
+            foreach ($validatedData['objects'] as $object) {
+                $project->objects()->attach($object['id'], [
+                    'idObjectType' => $object['type_id'],
+                    'name' => $object['name'],
+                ]);
+            }
+        }
+
         ActionLog::create([
-            'idActionType' => 1, // 1 is the action type for "Create Project"
+            'idActionType' => 1,
             'idLocalProject' => $project->idLocalProject,
-            'username' => Auth::user()->username, // Log the current user's username
-            'created' => now(), // Log the timestamp
+            'username' => Auth::user()->username,
+            'created' => now(),
         ]);
 
-        // Return the created project as a resource
         return new ProjectResource($project);
     }
 
