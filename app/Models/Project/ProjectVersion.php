@@ -6,35 +6,96 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * Class ProjectVersion
+ *
+ * Represents a version of a project.
+ *
+ * @package App\Models\Project
+ *
+ * @OA\Schema(
+ *     schema="ProjectVersion",
+ *     description="ProjectVersion model",
+ *     @OA\Property(
+ *         property="idLocalProject",
+ *         type="integer",
+ *         description="Unique identifier for the project version"
+ *     ),
+ *     @OA\Property(
+ *         property="idPhase",
+ *         type="integer",
+ *         description="Identifier for the phase associated with this project version"
+ *     ),
+ *     @OA\Property(
+ *         property="assignments",
+ *         type="string",
+ *         description="Assignments data related to this project version (if applicable)"
+ *     ),
+ *     @OA\Property(
+ *         property="idProject",
+ *         type="integer",
+ *         description="Identifier for the parent project"
+ *     ),
+ *     @OA\Property(
+ *         property="created",
+ *         type="string",
+ *         format="date-time",
+ *         description="Timestamp when the project version was created"
+ *     ),
+ *     @OA\Property(
+ *         property="validTo",
+ *         type="string",
+ *         format="date-time",
+ *         description="Expiration timestamp for this project version"
+ *     ),
+ *     @OA\Property(
+ *         property="historyDump",
+ *         type="object",
+ *         description="JSON dump of the project history"
+ *     ),
+ *     @OA\Property(
+ *         property="author",
+ *         type="string",
+ *         description="Author of the project version"
+ *     )
+ * )
+ */
 class ProjectVersion extends Model
 {
     /**
      * The table associated with the model.
+     *
+     * @var string
      */
     protected $table = 'projectVersions';
 
     /**
      * The primary key for the table.
+     * According to your schema, `idLocalProject` is the primary key and auto-incrementing.
      *
-     * According to your schema, `idLocalProject` is the primary key
-     * and is also auto-incrementing.
+     * @var string
      */
     protected $primaryKey = 'idLocalProject';
 
     /**
      * Indicates if the primary key is auto-incrementing.
-     * (Check your schema if `AUTO_INCREMENT` is set on `idLocalProject`.)
+     *
+     * @var bool
      */
     public $incrementing = true;
 
     /**
-     * Indicates if the model should be timestamped (created_at, updated_at).
-     * The table has a `created` column, but not the usual Laravel timestamps, so set this to false.
+     * Indicates if the model should be timestamped.
+     * The table has a `created` column but not the standard Laravel timestamps.
+     *
+     * @var bool
      */
     public $timestamps = false;
 
     /**
-     * The attributes that can be mass assigned.
+     * The attributes that are mass assignable.
+     *
+     * @var array
      */
     protected $fillable = [
         'idPhase',
@@ -48,10 +109,12 @@ class ProjectVersion extends Model
 
     /**
      * The attributes that should be cast to native types.
+     *
+     * @var array
      */
     protected $casts = [
-        'created' => 'datetime',
-        'validTo' => 'datetime',
+        'created'     => 'datetime',
+        'validTo'     => 'datetime',
         'historyDump' => 'json',
     ];
 
@@ -60,8 +123,10 @@ class ProjectVersion extends Model
      ************************************************/
 
     /**
-     * Relation to Project (projectVersions.idProject -> projects.idProject).
-     * If you have a `Project` model in `App\Models\Project`, reference that path.
+     * Relation to the parent Project.
+     * projectVersions.idProject -> projects.idProject
+     *
+     * @return BelongsTo
      */
     public function project(): BelongsTo
     {
@@ -69,7 +134,9 @@ class ProjectVersion extends Model
     }
 
     /**
-     * Each ProjectVersion can have many ActionLogs
+     * Each ProjectVersion can have many ActionLogs.
+     *
+     * @return HasMany
      */
     public function actionLogs(): HasMany
     {
@@ -77,8 +144,10 @@ class ProjectVersion extends Model
     }
 
     /**
-     * Relation to Phase (projectVersions.idPhase -> rangePhases.idPhase),
-     * if you want to reference the phase range table (optional).
+     * Relation to Phase.
+     * projectVersions.idPhase -> rangePhases.idPhase
+     *
+     * @return BelongsTo
      */
     public function phase(): BelongsTo
     {

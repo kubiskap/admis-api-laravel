@@ -8,6 +8,83 @@ use Illuminate\Notifications\Notifiable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Database\Eloquent\Concerns\HasTimestamps;
 
+/**
+ * Class User
+ *
+ * Represents an application user.
+ *
+ * @package App\Models\Users
+ *
+ * @OA\Schema(
+ *     schema="User",
+ *     type="object",
+ *     title="User",
+ *     required={"username", "name", "email", "idOu", "idRoleType", "idAuthorityType"},
+ *     @OA\Property(
+ *         property="username",
+ *         type="string",
+ *         description="Unique identifier for the user (primary key)"
+ *     ),
+ *     @OA\Property(
+ *         property="name",
+ *         type="string",
+ *         description="The full name of the user"
+ *     ),
+ *     @OA\Property(
+ *         property="email",
+ *         type="string",
+ *         description="The email address of the user"
+ *     ),
+ *     @OA\Property(
+ *         property="idOu",
+ *         type="integer",
+ *         description="Identifier for the organizational unit the user belongs to"
+ *     ),
+ *     @OA\Property(
+ *         property="idRoleType",
+ *         type="integer",
+ *         description="Identifier for the user's role type"
+ *     ),
+ *     @OA\Property(
+ *         property="idAuthorityType",
+ *         type="integer",
+ *         description="Identifier for the user's authority type"
+ *     ),
+ *     @OA\Property(
+ *         property="accessDenied",
+ *         type="boolean",
+ *         description="Indicates if the user is currently denied access"
+ *     ),
+ *     @OA\Property(
+ *         property="idReportConfig",
+ *         type="integer",
+ *         description="Identifier for the associated report configuration"
+ *     ),
+ *     @OA\Property(
+ *         property="editorReport",
+ *         type="boolean",
+ *         description="Indicates if the user is an editor for reports"
+ *     ),
+ *     @OA\Property(
+ *         property="created",
+ *         type="string",
+ *         format="date-time",
+ *         description="Timestamp when the user was created"
+ *     ),
+ *     @OA\Property(
+ *         property="updated",
+ *         type="string",
+ *         format="date-time",
+ *         description="Timestamp when the user was last updated"
+ *     ),
+ *     @OA\Property(
+ *         property="deleted",
+ *         type="string",
+ *         format="date-time",
+ *         description="Timestamp when the user was deleted"
+ *     )
+ * )
+ */
 class User extends Authenticatable implements JWTSubject
 {
     use HasFactory, Notifiable, HasTimestamps;
@@ -250,7 +327,7 @@ class User extends Authenticatable implements JWTSubject
      */
     public function projectRelations()
     {
-        return $this->hasMany(\App\Models\Project\ProjectRelation::class, 'username', 'username');
+        return $this->hasMany(\App\Models\Pivots\ProjectRelation::class, 'username', 'username');
     }
 
     /**

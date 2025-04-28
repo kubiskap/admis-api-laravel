@@ -4,6 +4,33 @@ namespace App\Models\Enums;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Class PriceSubtype
+ *
+ * Represents a subtype of price in the system.
+ *
+ * @package App\Models\Enums
+ *
+ * @OA\Schema(
+ *     schema="PriceSubtype",
+ *     description="PriceSubtype model",
+ *     @OA\Property(
+ *         property="idPriceSubtypes",
+ *         type="integer",
+ *         description="Unique identifier for the price subtype"
+ *     ),
+ *     @OA\Property(
+ *         property="name",
+ *         type="string",
+ *         description="Name of the price subtype"
+ *     ),
+ *     @OA\Property(
+ *         property="hidden",
+ *         type="boolean",
+ *         description="Indicates whether the price subtype is hidden"
+ *     )
+ * )
+ */
 class PriceSubtype extends Model
 {
     /**
@@ -34,9 +61,19 @@ class PriceSubtype extends Model
      */
     protected $fillable = [
         'name',
-        'hidden'
+        'hidden',
     ];
 
+    /************************************************
+     *             RELATIONSHIPS
+     ************************************************/
+
+    /**
+     * Many price subtypes belong to one PriceType (rangePriceTypes).
+     * priceSubtype.idPriceSubtype -> rangePriceTypes.idPriceSubtypes
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
     public function priceType()
     {
         return $this->belongsTo(PriceType::class, 'idPriceSubtype', 'idPriceSubtypes');

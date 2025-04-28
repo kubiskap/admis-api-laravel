@@ -3,11 +3,40 @@
 namespace App\Models\Objects;
 
 use Illuminate\Database\Eloquent\Model;
-
-use App\Models\Enums\ObjectType;
-use App\Models\Project\Project;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * Class ObjectModel
+ *
+ * Represents an object in the system.
+ *
+ * @package App\Models\Objects
+ *
+ * @OA\Schema(
+ *     schema="ObjectModel",
+ *     description="ObjectModel model",
+ *     @OA\Property(
+ *         property="idObject",
+ *         type="integer",
+ *         description="Unique identifier for the object"
+ *     ),
+ *     @OA\Property(
+ *         property="idProject",
+ *         type="integer",
+ *         description="Identifier of the associated project"
+ *     ),
+ *     @OA\Property(
+ *         property="idObjectType",
+ *         type="integer",
+ *         description="Identifier of the associated object type"
+ *     ),
+ *     @OA\Property(
+ *         property="name",
+ *         type="string",
+ *         description="Name of the object"
+ *     )
+ * )
+ */
 class ObjectModel extends Model
 {
     /**
@@ -49,8 +78,15 @@ class ObjectModel extends Model
         'name',
     ];
 
+    /************************************************
+     *             RELATIONSHIPS
+     ************************************************/
+
     /**
      * Get the project that owns the object.
+     * objects.idProject -> projects.idProject
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function project(): BelongsTo
     {
@@ -59,9 +95,13 @@ class ObjectModel extends Model
 
     /**
      * Get the object type as an enum.
+     * objects.idObjectType -> rangeObjectTypes.idObjectType
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function objectType(): BelongsTo
     {
         return $this->belongsTo(\App\Models\Enums\ObjectType::class, 'idObjectType', 'idObjectType');
     }
+
 }

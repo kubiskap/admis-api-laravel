@@ -5,28 +5,67 @@ namespace App\Models\Pivots;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * Class ProjectCompany
+ *
+ * Represents the pivot table linking projects and companies.
+ *
+ * @package App\Models\Pivots
+ *
+ * @OA\Schema(
+ *     schema="ProjectCompany",
+ *     description="ProjectCompany model",
+ *     @OA\Property(
+ *         property="idProject",
+ *         type="integer",
+ *         description="Identifier for the project"
+ *     ),
+ *     @OA\Property(
+ *         property="idCompany",
+ *         type="integer",
+ *         description="Identifier for the company"
+ *     ),
+ *     @OA\Property(
+ *         property="idCompanyType",
+ *         type="integer",
+ *         description="Identifier for the company type"
+ *     )
+ * )
+ */
 class ProjectCompany extends Pivot
 {
     /**
      * The table associated with the pivot model.
+     *
+     * @var string
      */
     protected $table = 'project2company';
 
     /**
-     * Indicates if the pivot has auto-incrementing primary key.
-     * In your schema, the pivot doesn't have an autoincrement PK,
-     * so set this to false if there's no single integer PK.
+     * Indicates if the pivot has an auto-incrementing primary key.
+     *
+     * @var bool
      */
     public $incrementing = false;
 
     /**
-     * If needed, define the primary keys for the table for Eloquent if you want:
+     * The primary key for the pivot model.
+     *
+     * @var null
      */
-    protected $primaryKey = null; // or define composite if needed
+    protected $primaryKey = null;
+
+    /**
+     * Indicates if the model should be timestamped.
+     *
+     * @var bool
+     */
     public $timestamps = false;
 
     /**
-     * Accessors for relationships or custom columns...
+     * The attributes that are mass assignable.
+     *
+     * @var array
      */
     protected $fillable = [
         'idProject',
@@ -34,9 +73,15 @@ class ProjectCompany extends Pivot
         'idCompanyType',
     ];
 
+    /************************************************
+     *             RELATIONSHIPS
+     ************************************************/
+
     /**
-     * Relationship to the Enums\ContactType model
-     * project2contact.idContactType -> contactTypes.idContactType
+     * Relationship to the CompanyType model.
+     * project2company.idCompanyType -> companyTypes.idCompanyType
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function companyType(): BelongsTo
     {

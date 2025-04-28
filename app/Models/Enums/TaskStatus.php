@@ -5,31 +5,87 @@ namespace App\Models\Enums;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * Class TaskStatus
+ *
+ * Represents a status of a task in the system.
+ *
+ * @package App\Models\Enums
+ *
+ * @OA\Schema(
+ *     schema="TaskStatus",
+ *     description="TaskStatus model",
+ *     @OA\Property(
+ *         property="idTaskStatus",
+ *         type="integer",
+ *         description="Unique identifier for the task status"
+ *     ),
+ *     @OA\Property(
+ *         property="name",
+ *         type="string",
+ *         description="Name of the task status"
+ *     ),
+ *     @OA\Property(
+ *         property="isTerminal",
+ *         type="boolean",
+ *         description="Indicates if the task status is terminal"
+ *     ),
+ *     @OA\Property(
+ *         property="isEnabled",
+ *         type="boolean",
+ *         description="Indicates if the task status is enabled"
+ *     ),
+ *     @OA\Property(
+ *         property="rank",
+ *         type="integer",
+ *         description="Rank of the task status"
+ *     ),
+ *     @OA\Property(
+ *         property="statusColor",
+ *         type="string",
+ *         description="Color associated with the task status"
+ *     ),
+ *     @OA\Property(
+ *         property="statusClass",
+ *         type="string",
+ *         description="CSS class for the task status"
+ *     )
+ * )
+ */
 class TaskStatus extends Model
 {
     /**
      * The table associated with the model.
+     *
+     * @var string
      */
     protected $table = 'rangeTaskStatuses';
 
     /**
      * The primary key for the table.
+     *
+     * @var string
      */
     protected $primaryKey = 'idTaskStatus';
 
     /**
      * Indicates if the IDs are auto-incrementing.
-     * Adjust if your schema suggests otherwise (e.g. no AUTO_INCREMENT).
+     *
+     * @var bool
      */
     public $incrementing = true;
 
     /**
-     * This table likely does not have created_at/updated_at fields.
+     * Indicates if the model should be timestamped.
+     *
+     * @var bool
      */
     public $timestamps = false;
 
     /**
-     * The attributes that can be mass assigned.
+     * The attributes that are mass assignable.
+     *
+     * @var array
      */
     protected $fillable = [
         'name',
@@ -42,6 +98,8 @@ class TaskStatus extends Model
 
     /**
      * The attributes that should be cast to native types.
+     *
+     * @var array
      */
     protected $casts = [
         'isTerminal' => 'boolean',
@@ -49,12 +107,19 @@ class TaskStatus extends Model
         'rank'       => 'integer',
     ];
 
+    /************************************************
+     *             RELATIONSHIPS
+     ************************************************/
+
     /**
-     * If you want to relate this TaskStatus to all TaskVersions
-     * that use it (taskVersions.idTaskStatus -> rangeTaskStatuses.idTaskStatus):
+     * One task status is associated with many task versions (taskVersions).
+     * taskVersions.idTaskStatus -> rangeTaskStatuses.idTaskStatus
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function taskVersions(): HasMany
     {
         return $this->hasMany(\App\Models\Tasks\TaskVersion::class, 'idTaskStatus', 'idTaskStatus');
     }
+
 }

@@ -5,29 +5,78 @@ namespace App\Models\Tasks;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * Class TaskReaction
+ *
+ * Represents a reaction to a task.
+ *
+ * @package App\Models\Tasks
+ *
+ * @OA\Schema(
+ *     schema="TaskReaction",
+ *     description="TaskReaction model",
+ *     @OA\Property(
+ *         property="idTask",
+ *         type="integer",
+ *         description="Identifier for the task that this reaction belongs to"
+ *     ),
+ *     @OA\Property(
+ *         property="reaction",
+ *         type="string",
+ *         description="The reaction content or type"
+ *     ),
+ *     @OA\Property(
+ *         property="created",
+ *         type="string",
+ *         format="date-time",
+ *         description="Timestamp when the reaction was created"
+ *     ),
+ *     @OA\Property(
+ *         property="createdBy",
+ *         type="string",
+ *         description="Username of the user who created the reaction"
+ *     ),
+ *     @OA\Property(
+ *         property="deleted",
+ *         type="string",
+ *         format="date-time",
+ *         description="Timestamp when the reaction was deleted, if applicable"
+ *     ),
+ *     @OA\Property(
+ *         property="deletedBy",
+ *         type="string",
+ *         description="Username of the user who deleted the reaction, if applicable"
+ *     )
+ * )
+ */
 class TaskReaction extends Model
 {
     /**
      * The table associated with the model.
+     *
+     * @var string
      */
     protected $table = 'taskReactions';
 
     /**
-     * The table has a composite primary key: (idTask, created).
-     * Eloquent doesn't handle composite keys natively, so set primaryKey = null
-     * and incrementing = false to allow read/write but not standard find().
+     * Since the table has a composite primary key, set primaryKey to null.
+     *
+     * @var null
      */
     protected $primaryKey = null;
     public $incrementing = false;
 
     /**
-     * The table doesn't have created_at / updated_at columns,
-     * so we disable default timestamp management.
+     * The table doesn't use automatic timestamps.
+     *
+     * @var bool
      */
     public $timestamps = false;
 
     /**
      * The attributes that can be mass assigned.
+     *
+     * @var array
      */
     protected $fillable = [
         'idTask',
@@ -40,6 +89,8 @@ class TaskReaction extends Model
 
     /**
      * The attributes that should be cast to native types.
+     *
+     * @var array
      */
     protected $casts = [
         'created' => 'datetime',
@@ -53,6 +104,8 @@ class TaskReaction extends Model
     /**
      * Each taskReaction belongs to a Task (tasksProject).
      * taskReactions.idTask -> tasksProject.idTask
+     *
+     * @return BelongsTo
      */
     public function task(): BelongsTo
     {
@@ -61,7 +114,9 @@ class TaskReaction extends Model
 
     /**
      * If 'createdBy' references a user (users.username),
-     * we can define this relationship as well:
+     * this relationship retrieves the creator of the reaction.
+     *
+     * @return BelongsTo
      */
     public function creator(): BelongsTo
     {
@@ -70,7 +125,9 @@ class TaskReaction extends Model
 
     /**
      * If 'deletedBy' references a user (users.username),
-     * we can define this relationship as well:
+     * this relationship retrieves the user who deleted the reaction.
+     *
+     * @return BelongsTo
      */
     public function deletor(): BelongsTo
     {

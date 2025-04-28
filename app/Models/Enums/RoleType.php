@@ -4,6 +4,38 @@ namespace App\Models\Enums;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Class RoleType
+ *
+ * Represents a type of role in the system.
+ *
+ * @package App\Models\Enums
+ *
+ * @OA\Schema(
+ *     schema="RoleType",
+ *     description="RoleType model",
+ *     @OA\Property(
+ *         property="idRoleType",
+ *         type="integer",
+ *         description="Unique identifier for the role type"
+ *     ),
+ *     @OA\Property(
+ *         property="name",
+ *         type="string",
+ *         description="Name of the role type"
+ *     ),
+ *     @OA\Property(
+ *         property="description",
+ *         type="string",
+ *         description="Description of the role type"
+ *     ),
+ *     @OA\Property(
+ *         property="hidden",
+ *         type="boolean",
+ *         description="Indicates whether the role type is hidden"
+ *     )
+ * )
+ */
 class RoleType extends Model
 {
     /**
@@ -35,6 +67,6 @@ class RoleType extends Model
     protected $fillable = [
         'name',
         'description',
-        'hidden'
+        'hidden',
     ];
 }

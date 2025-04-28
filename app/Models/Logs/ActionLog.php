@@ -5,6 +5,44 @@ namespace App\Models\Logs;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * Class ActionLog
+ *
+ * Represents an action log entry in the system.
+ *
+ * @package App\Models\Logs
+ *
+ * @OA\Schema(
+ *     schema="ActionLog",
+ *     description="ActionLog model",
+ *     @OA\Property(
+ *         property="idAction",
+ *         type="integer",
+ *         description="Unique identifier for the action log entry"
+ *     ),
+ *     @OA\Property(
+ *         property="idActionType",
+ *         type="integer",
+ *         description="Identifier of the associated action type"
+ *     ),
+ *     @OA\Property(
+ *         property="idLocalProject",
+ *         type="integer",
+ *         description="Identifier of the associated local project"
+ *     ),
+ *     @OA\Property(
+ *         property="username",
+ *         type="string",
+ *         description="Username of the user who performed the action"
+ *     ),
+ *     @OA\Property(
+ *         property="created",
+ *         type="string",
+ *         format="date-time",
+ *         description="Timestamp when the action was logged"
+ *     )
+ * )
+ */
 class ActionLog extends Model
 {
     /**
@@ -44,7 +82,7 @@ class ActionLog extends Model
         'idActionType',
         'idLocalProject',
         'username',
-        'created'
+        'created',
     ];
 
     /**
@@ -56,8 +94,15 @@ class ActionLog extends Model
         'created' => 'datetime',
     ];
 
+    /************************************************
+     *             RELATIONSHIPS
+     ************************************************/
+
     /**
      * Get the action type that owns the log entry.
+     * actionsLogs.idActionType -> rangeActionTypes.idActionType
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function actionType(): BelongsTo
     {
@@ -66,6 +111,9 @@ class ActionLog extends Model
 
     /**
      * Get the user that owns the log entry.
+     * actionsLogs.username -> users.username
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function user(): BelongsTo
     {
@@ -74,12 +122,18 @@ class ActionLog extends Model
 
     /**
      * Get the project version associated with the log entry.
-     * Note: This assumes you have a ProjectVersion model.
+     * actionsLogs.idLocalProject -> projectVersions.idLocalProject
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function projectVersion(): BelongsTo
     {
         return $this->belongsTo(\App\Models\Project\ProjectVersion::class, 'idLocalProject', 'idLocalProject');
     }
+
+    /************************************************
+     *                    METHODS
+     ************************************************/
 
     /**
      * Log an action.

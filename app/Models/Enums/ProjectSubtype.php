@@ -5,6 +5,33 @@ namespace App\Models\Enums;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
+/**
+ * Class ProjectSubtype
+ *
+ * Represents a subtype of a project in the system.
+ *
+ * @package App\Models\Enums
+ *
+ * @OA\Schema(
+ *     schema="ProjectSubtype",
+ *     description="ProjectSubtype model",
+ *     @OA\Property(
+ *         property="idProjectSubtype",
+ *         type="integer",
+ *         description="Unique identifier for the project subtype"
+ *     ),
+ *     @OA\Property(
+ *         property="name",
+ *         type="string",
+ *         description="Name of the project subtype"
+ *     ),
+ *     @OA\Property(
+ *         property="hidden",
+ *         type="boolean",
+ *         description="Indicates whether the project subtype is hidden"
+ *     )
+ * )
+ */
 class ProjectSubtype extends Model
 {
     /**
@@ -35,9 +62,20 @@ class ProjectSubtype extends Model
      */
     protected $fillable = [
         'name',
-        'hidden'
+        'hidden',
     ];
 
+    /************************************************
+     *             RELATIONSHIPS
+     ************************************************/
+
+    /**
+     * Many project subtypes belong to many project types (type2subtype).
+     * projectSubtype.idProjectSubtype -> type2subtype.idProjectSubtype
+     * type2subtype.idProjectType -> projectType.idProjectType
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
     public function types(): BelongsToMany
     {
         return $this->belongsToMany(

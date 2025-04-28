@@ -4,6 +4,33 @@ namespace App\Models\Enums;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Class SuspensionSource
+ *
+ * Represents a source of suspension in the system.
+ *
+ * @package App\Models\Enums
+ *
+ * @OA\Schema(
+ *     schema="SuspensionSource",
+ *     description="SuspensionSource model",
+ *     @OA\Property(
+ *         property="idSuspensionSource",
+ *         type="integer",
+ *         description="Unique identifier for the suspension source"
+ *     ),
+ *     @OA\Property(
+ *         property="name",
+ *         type="string",
+ *         description="Name of the suspension source"
+ *     ),
+ *     @OA\Property(
+ *         property="hidden",
+ *         type="boolean",
+ *         description="Indicates whether the suspension source is hidden"
+ *     )
+ * )
+ */
 class SuspensionSource extends Model
 {
     /**
@@ -34,6 +61,6 @@ class SuspensionSource extends Model
      */
     protected $fillable = [
         'name',
-        'hidden'
+        'hidden',
     ];
 }

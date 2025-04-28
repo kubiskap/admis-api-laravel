@@ -4,6 +4,33 @@ namespace App\Models\Enums;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Class CommunicationType
+ *
+ * Represents a type of communication in the system.
+ *
+ * @package App\Models\Enums
+ *
+ * @OA\Schema(
+ *     schema="CommunicationType",
+ *     description="CommunicationType model",
+ *     @OA\Property(
+ *         property="idCommunicationType",
+ *         type="integer",
+ *         description="Unique identifier for the communication type"
+ *     ),
+ *     @OA\Property(
+ *         property="name",
+ *         type="string",
+ *         description="Name of the communication type"
+ *     ),
+ *     @OA\Property(
+ *         property="hidden",
+ *         type="boolean",
+ *         description="Indicates whether the communication type is hidden"
+ *     )
+ * )
+ */
 class CommunicationType extends Model
 {
     /**

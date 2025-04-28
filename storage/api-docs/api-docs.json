@@ -1203,258 +1203,6 @@
                 ]
             }
         },
-        "/api/v1/projects/search": {
-            "post": {
-                "tags": [
-                    "Projects"
-                ],
-                "summary": "Search projects with filters",
-                "description": "Search projects using various filters provided in the request body. Only projects with no deletedDate are returned.",
-                "operationId": "searchProjects",
-                "requestBody": {
-                    "required": false,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "page": {
-                                        "description": "Page number",
-                                        "type": "integer",
-                                        "default": 1
-                                    },
-                                    "per_page": {
-                                        "description": "Number of items per page",
-                                        "type": "integer",
-                                        "default": 15
-                                    },
-                                    "sort_field": {
-                                        "description": "Field to sort by",
-                                        "type": "string",
-                                        "default": "idProject"
-                                    },
-                                    "sort_order": {
-                                        "description": "Sort order: 1 for ascending, -1 for descending",
-                                        "type": "integer",
-                                        "default": 1
-                                    },
-                                    "filter": {
-                                        "properties": {
-                                            "project": {
-                                                "properties": {
-                                                    "id": {
-                                                        "type": "array",
-                                                        "items": {
-                                                            "type": "integer"
-                                                        }
-                                                    },
-                                                    "editor": {
-                                                        "type": "array",
-                                                        "items": {
-                                                            "type": "string"
-                                                        }
-                                                    },
-                                                    "ou": {
-                                                        "type": "array",
-                                                        "items": {
-                                                            "type": "integer"
-                                                        }
-                                                    },
-                                                    "type": {
-                                                        "type": "array",
-                                                        "items": {
-                                                            "type": "integer"
-                                                        }
-                                                    },
-                                                    "subtype": {
-                                                        "type": "array",
-                                                        "items": {
-                                                            "type": "integer"
-                                                        }
-                                                    },
-                                                    "phase": {
-                                                        "type": "array",
-                                                        "items": {
-                                                            "type": "integer"
-                                                        }
-                                                    },
-                                                    "financialSource": {
-                                                        "type": "array",
-                                                        "items": {
-                                                            "type": "integer"
-                                                        }
-                                                    }
-                                                },
-                                                "type": "object"
-                                            },
-                                            "related": {
-                                                "properties": {
-                                                    "communications": {
-                                                        "type": "array",
-                                                        "items": {
-                                                            "type": "integer"
-                                                        }
-                                                    },
-                                                    "areas": {
-                                                        "type": "array",
-                                                        "items": {
-                                                            "type": "integer"
-                                                        }
-                                                    }
-                                                },
-                                                "type": "object"
-                                            },
-                                            "companies": {
-                                                "properties": {
-                                                    "supervisor": {
-                                                        "type": "array",
-                                                        "items": {
-                                                            "type": "integer"
-                                                        }
-                                                    },
-                                                    "builder": {
-                                                        "type": "array",
-                                                        "items": {
-                                                            "type": "integer"
-                                                        }
-                                                    },
-                                                    "project": {
-                                                        "type": "array",
-                                                        "items": {
-                                                            "type": "integer"
-                                                        }
-                                                    }
-                                                },
-                                                "type": "object"
-                                            }
-                                        },
-                                        "type": "object"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Successful operation",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "properties": {
-                                                    "id": {
-                                                        "type": "integer"
-                                                    },
-                                                    "name": {
-                                                        "type": "string"
-                                                    },
-                                                    "type": {
-                                                        "type": "string"
-                                                    },
-                                                    "subtype": {
-                                                        "type": "string",
-                                                        "nullable": true
-                                                    },
-                                                    "in_concept": {
-                                                        "type": "boolean"
-                                                    },
-                                                    "phase": {
-                                                        "properties": {
-                                                            "id": {
-                                                                "type": "integer"
-                                                            },
-                                                            "name": {
-                                                                "type": "string"
-                                                            },
-                                                            "color": {
-                                                                "type": "string"
-                                                            },
-                                                            "color_class": {
-                                                                "type": "string"
-                                                            }
-                                                        },
-                                                        "type": "object"
-                                                    },
-                                                    "editor": {
-                                                        "properties": {
-                                                            "username": {
-                                                                "type": "string"
-                                                            },
-                                                            "name": {
-                                                                "type": "string"
-                                                            }
-                                                        },
-                                                        "type": "object"
-                                                    },
-                                                    "communications": {
-                                                        "type": "array",
-                                                        "items": {
-                                                            "type": "object"
-                                                        }
-                                                    },
-                                                    "areas": {
-                                                        "type": "array",
-                                                        "items": {
-                                                            "type": "string"
-                                                        }
-                                                    }
-                                                },
-                                                "type": "object"
-                                            }
-                                        },
-                                        "meta": {
-                                            "properties": {
-                                                "current_page": {
-                                                    "type": "integer"
-                                                },
-                                                "from": {
-                                                    "type": "integer"
-                                                },
-                                                "last_page": {
-                                                    "type": "integer"
-                                                },
-                                                "links": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "object"
-                                                    }
-                                                },
-                                                "path": {
-                                                    "type": "string"
-                                                },
-                                                "per_page": {
-                                                    "type": "integer"
-                                                },
-                                                "to": {
-                                                    "type": "integer"
-                                                },
-                                                "total": {
-                                                    "type": "integer"
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthenticated"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
         "/api/v1/projects/{id}/editors-history": {
             "get": {
                 "tags": [
@@ -1660,6 +1408,220 @@
                         "bearerAuth": []
                     }
                 ]
+            }
+        },
+        "/api/v1/projects": {
+            "post": {
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "Create a new project",
+                "operationId": "storeProject",
+                "parameters": [
+                    {
+                        "name": "type",
+                        "in": "query",
+                        "description": "Project category (namet, stavba, udrzba)",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "namet",
+                                "stavba",
+                                "udrzba"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "subject",
+                                    "project_type",
+                                    "project_subtype",
+                                    "editor",
+                                    "areas",
+                                    "communications",
+                                    "prices",
+                                    "fin_source"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "maxLength": 255
+                                    },
+                                    "subject": {
+                                        "type": "string"
+                                    },
+                                    "project_type": {
+                                        "description": "ID of project type",
+                                        "type": "integer"
+                                    },
+                                    "project_subtype": {
+                                        "description": "ID of project subtype",
+                                        "type": "integer"
+                                    },
+                                    "editor": {
+                                        "description": "Username of editor",
+                                        "type": "string"
+                                    },
+                                    "areas": {
+                                        "type": "array",
+                                        "items": {
+                                            "description": "ID of area",
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "communications": {
+                                        "type": "array",
+                                        "items": {
+                                            "required": [
+                                                "id",
+                                                "stationing_from",
+                                                "stationing_to",
+                                                "gps_n1",
+                                                "gps_n2",
+                                                "gps_e1",
+                                                "gps_e2"
+                                            ],
+                                            "properties": {
+                                                "id": {
+                                                    "description": "ID of communication",
+                                                    "type": "integer"
+                                                },
+                                                "stationing_from": {
+                                                    "type": "number"
+                                                },
+                                                "stationing_to": {
+                                                    "type": "number"
+                                                },
+                                                "gps_n1": {
+                                                    "type": "number"
+                                                },
+                                                "gps_n2": {
+                                                    "type": "number"
+                                                },
+                                                "gps_e1": {
+                                                    "type": "number"
+                                                },
+                                                "gps_e2": {
+                                                    "type": "number"
+                                                },
+                                                "geometry": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "objects": {
+                                        "type": "array",
+                                        "items": {
+                                            "required": [
+                                                "type_id",
+                                                "id",
+                                                "name"
+                                            ],
+                                            "properties": {
+                                                "type_id": {
+                                                    "description": "ID of object type",
+                                                    "type": "integer"
+                                                },
+                                                "id": {
+                                                    "description": "ID of object",
+                                                    "type": "integer"
+                                                },
+                                                "name": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "nullable": true
+                                    },
+                                    "prices": {
+                                        "type": "array",
+                                        "items": {
+                                            "required": [
+                                                "type_id",
+                                                "id",
+                                                "value"
+                                            ],
+                                            "properties": {
+                                                "type_id": {
+                                                    "description": "ID of price type",
+                                                    "type": "integer"
+                                                },
+                                                "id": {
+                                                    "description": "ID of price",
+                                                    "type": "integer"
+                                                },
+                                                "value": {
+                                                    "type": "number"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "fin_source": {
+                                        "description": "ID of financial source",
+                                        "type": "integer"
+                                    },
+                                    "fin_source_pd": {
+                                        "description": "ID of project documentation source",
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
+                                    "relations": {
+                                        "type": "array",
+                                        "items": {
+                                            "required": [
+                                                "type_id",
+                                                "id"
+                                            ],
+                                            "properties": {
+                                                "type_id": {
+                                                    "description": "ID of relation type",
+                                                    "type": "integer"
+                                                },
+                                                "id": {
+                                                    "description": "ID of related project",
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Project created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProjectResource"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                }
             }
         },
         "/api/v1/users": {
@@ -2346,6 +2308,1985 @@
         }
     },
     "components": {
+        "schemas": {
+            "ActionLogResource": {
+                "title": "Action Log Resource",
+                "required": [
+                    "id",
+                    "date",
+                    "user",
+                    "action"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Unique identifier of the action log",
+                        "type": "integer"
+                    },
+                    "date": {
+                        "description": "Date and time when the action was logged",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "user": {
+                        "description": "User details",
+                        "required": [
+                            "username",
+                            "name"
+                        ],
+                        "properties": {
+                            "username": {
+                                "description": "Username of the user",
+                                "type": "string"
+                            },
+                            "name": {
+                                "description": "Full name of the user",
+                                "type": "string"
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "action": {
+                        "description": "Name of the action performed",
+                        "type": "string"
+                    },
+                    "project": {
+                        "description": "Project details, if available",
+                        "properties": {
+                            "id": {
+                                "description": "Project unique identifier",
+                                "type": "integer"
+                            },
+                            "name": {
+                                "description": "Project name",
+                                "type": "string"
+                            },
+                            "phase": {
+                                "description": "Name of the project phase",
+                                "type": "string"
+                            }
+                        },
+                        "type": "object",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "CommunicationGeometryResource": {
+                "title": "Communication Geometry Resource",
+                "required": [
+                    "gps_n1",
+                    "gps_n2",
+                    "gps_e1",
+                    "gps_e2"
+                ],
+                "properties": {
+                    "project_id": {
+                        "description": "Project identifier, included in map requests",
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "communication_id": {
+                        "description": "Communication identifier, included in map requests",
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "phase_color": {
+                        "description": "Phase color from project phase, included if project is loaded",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "gps_n1": {
+                        "description": "GPS N1 coordinate",
+                        "type": "number"
+                    },
+                    "gps_n2": {
+                        "description": "GPS N2 coordinate",
+                        "type": "number"
+                    },
+                    "gps_e1": {
+                        "description": "GPS E1 coordinate",
+                        "type": "number"
+                    },
+                    "gps_e2": {
+                        "description": "GPS E2 coordinate",
+                        "type": "number"
+                    },
+                    "geometryWgs": {
+                        "description": "Geometry in WGS coordinate system",
+                        "type": "string",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "CommunicationResource": {
+                "title": "Communication Resource",
+                "required": [
+                    "name",
+                    "stationing_from",
+                    "stationing_to"
+                ],
+                "properties": {
+                    "name": {
+                        "description": "Communication name",
+                        "type": "string"
+                    },
+                    "stationing_from": {
+                        "description": "Stationing from value",
+                        "type": "number"
+                    },
+                    "stationing_to": {
+                        "description": "Stationing to value",
+                        "type": "number"
+                    },
+                    "geometry": {
+                        "description": "Geometry information",
+                        "type": "string",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "ProjectResource": {
+                "title": "Project Resource",
+                "required": [
+                    "id",
+                    "name",
+                    "type",
+                    "in_concept"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Unique identifier of the project",
+                        "type": "integer"
+                    },
+                    "name": {
+                        "description": "Project name",
+                        "type": "string"
+                    },
+                    "type": {
+                        "description": "Project type name",
+                        "type": "string"
+                    },
+                    "subtype": {
+                        "description": "Project subtype name",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "in_concept": {
+                        "description": "Indicates if the project is in concept",
+                        "type": "boolean"
+                    },
+                    "phase": {
+                        "description": "Project phase details",
+                        "properties": {
+                            "id": {
+                                "description": "Phase identifier",
+                                "type": "integer"
+                            },
+                            "name": {
+                                "description": "Phase name",
+                                "type": "string"
+                            },
+                            "color": {
+                                "description": "Phase color",
+                                "type": "string"
+                            },
+                            "color_class": {
+                                "description": "Phase color class",
+                                "type": "string"
+                            }
+                        },
+                        "type": "object",
+                        "nullable": true
+                    },
+                    "editor": {
+                        "description": "Editor details",
+                        "properties": {
+                            "username": {
+                                "description": "Editor username",
+                                "type": "string"
+                            },
+                            "name": {
+                                "description": "Editor name",
+                                "type": "string"
+                            }
+                        },
+                        "type": "object",
+                        "nullable": true
+                    },
+                    "author": {
+                        "description": "Author details",
+                        "properties": {
+                            "username": {
+                                "description": "Author username",
+                                "type": "string"
+                            },
+                            "name": {
+                                "description": "Author name",
+                                "type": "string"
+                            }
+                        },
+                        "type": "object",
+                        "nullable": true
+                    },
+                    "priority_attributes": {
+                        "description": "Priority attributes for the project",
+                        "type": "object"
+                    },
+                    "financial_source": {
+                        "description": "Name of the financial source",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "financial_source_pd": {
+                        "description": "Name of the project documentation financial source",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "areas": {
+                        "description": "List of area names",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "communications": {
+                        "description": "List of communications",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/CommunicationResource"
+                        }
+                    },
+                    "contacts": {
+                        "description": "List of contacts",
+                        "type": "array",
+                        "items": {
+                            "properties": {
+                                "id": {
+                                    "description": "Contact identifier",
+                                    "type": "integer"
+                                },
+                                "name": {
+                                    "description": "Contact name",
+                                    "type": "string"
+                                },
+                                "phone": {
+                                    "description": "Contact phone",
+                                    "type": "string"
+                                },
+                                "email": {
+                                    "description": "Contact email",
+                                    "type": "string"
+                                },
+                                "type": {
+                                    "properties": {
+                                        "id": {
+                                            "description": "Contact type identifier",
+                                            "type": "integer"
+                                        },
+                                        "name": {
+                                            "description": "Contact type name",
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "companies": {
+                        "description": "List of companies",
+                        "type": "array",
+                        "items": {
+                            "properties": {
+                                "id": {
+                                    "description": "Company identifier",
+                                    "type": "integer"
+                                },
+                                "name": {
+                                    "description": "Company name",
+                                    "type": "string"
+                                },
+                                "address": {
+                                    "description": "Company address",
+                                    "type": "string"
+                                },
+                                "ic": {
+                                    "description": "Company IC",
+                                    "type": "string"
+                                },
+                                "dic": {
+                                    "description": "Company DIC",
+                                    "type": "string"
+                                },
+                                "www": {
+                                    "description": "Company website",
+                                    "type": "string"
+                                },
+                                "type": {
+                                    "properties": {
+                                        "id": {
+                                            "description": "Company type identifier",
+                                            "type": "string"
+                                        },
+                                        "name": {
+                                            "description": "Company type name",
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "prices": {
+                        "description": "List of prices",
+                        "type": "array",
+                        "items": {
+                            "properties": {
+                                "type": {
+                                    "properties": {
+                                        "id": {
+                                            "description": "Price type identifier",
+                                            "type": "integer"
+                                        },
+                                        "name": {
+                                            "description": "Price type name",
+                                            "type": "string"
+                                        },
+                                        "subtype": {
+                                            "properties": {
+                                                "id": {
+                                                    "description": "Price subtype identifier",
+                                                    "type": "integer"
+                                                },
+                                                "name": {
+                                                    "description": "Price subtype name",
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                "value": {
+                                    "description": "Price value",
+                                    "type": "number"
+                                }
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "deadlines": {
+                        "description": "List of deadlines",
+                        "type": "array",
+                        "items": {
+                            "properties": {
+                                "type": {
+                                    "description": "Deadline type",
+                                    "type": "string"
+                                },
+                                "date": {
+                                    "description": "Deadline date",
+                                    "type": "string",
+                                    "format": "date"
+                                }
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "suspensions": {
+                        "description": "List of suspensions",
+                        "type": "array",
+                        "items": {
+                            "properties": {
+                                "source": {
+                                    "description": "Suspension source",
+                                    "type": "string"
+                                },
+                                "reason": {
+                                    "description": "Suspension reason",
+                                    "type": "string"
+                                },
+                                "comment": {
+                                    "description": "Suspension comment",
+                                    "type": "string"
+                                },
+                                "start": {
+                                    "description": "Suspension start date",
+                                    "type": "string",
+                                    "format": "date-time"
+                                },
+                                "end": {
+                                    "description": "Suspension end date",
+                                    "type": "string",
+                                    "format": "date-time"
+                                },
+                                "author": {
+                                    "description": "Author of the suspension",
+                                    "type": "string"
+                                }
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "tasks": {
+                        "description": "List of tasks",
+                        "type": "array",
+                        "items": {
+                            "properties": {
+                                "author": {
+                                    "description": "Task author",
+                                    "type": "string"
+                                },
+                                "date": {
+                                    "description": "Task creation date",
+                                    "type": "string",
+                                    "format": "date-time"
+                                },
+                                "deadline": {
+                                    "description": "Task deadline",
+                                    "type": "string",
+                                    "format": "date-time"
+                                },
+                                "name": {
+                                    "description": "Task name",
+                                    "type": "string"
+                                },
+                                "description": {
+                                    "description": "Task description",
+                                    "type": "string"
+                                },
+                                "status": {
+                                    "properties": {
+                                        "id": {
+                                            "description": "Task status identifier",
+                                            "type": "integer"
+                                        },
+                                        "name": {
+                                            "description": "Task status name",
+                                            "type": "string"
+                                        },
+                                        "color": {
+                                            "description": "Task status color",
+                                            "type": "string"
+                                        },
+                                        "color_class": {
+                                            "description": "Task status color class",
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                "reactions": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "author": {
+                                                "description": "Reaction author",
+                                                "type": "string"
+                                            },
+                                            "date": {
+                                                "description": "Reaction date",
+                                                "type": "string",
+                                                "format": "date-time"
+                                            },
+                                            "content": {
+                                                "description": "Reaction content",
+                                                "type": "string"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            },
+                            "type": "object"
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "ActionType": {
+                "description": "ActionType model",
+                "properties": {
+                    "idActionType": {
+                        "description": "Unique identifier for the action type",
+                        "type": "integer"
+                    },
+                    "name": {
+                        "description": "Name of the action type",
+                        "type": "string"
+                    },
+                    "description": {
+                        "description": "Detailed description of the action type",
+                        "type": "string"
+                    },
+                    "hidden": {
+                        "description": "Indicates whether the action type is hidden",
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
+            },
+            "Area": {
+                "description": "Area model",
+                "properties": {
+                    "idArea": {
+                        "description": "Unique identifier for the area",
+                        "type": "integer"
+                    },
+                    "name": {
+                        "description": "Name of the area",
+                        "type": "string"
+                    },
+                    "hidden": {
+                        "description": "Indicates whether the area is hidden",
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
+            },
+            "AttributeGroup": {
+                "description": "AttributeGroup model",
+                "properties": {
+                    "idAttGroup": {
+                        "description": "Unique identifier for the attribute group",
+                        "type": "integer"
+                    },
+                    "name": {
+                        "description": "Name of the attribute group",
+                        "type": "string"
+                    },
+                    "enabled": {
+                        "description": "Indicates whether the attribute group is enabled",
+                        "type": "boolean"
+                    },
+                    "ordering": {
+                        "description": "Ordering position of the attribute group",
+                        "type": "integer"
+                    }
+                },
+                "type": "object"
+            },
+            "AttributeType": {
+                "description": "AttributeType model",
+                "properties": {
+                    "idAttributeType": {
+                        "description": "Unique identifier for the attribute type",
+                        "type": "integer"
+                    },
+                    "idAttGroup": {
+                        "description": "Identifier of the related attribute group",
+                        "type": "integer"
+                    },
+                    "name": {
+                        "description": "Name of the attribute type",
+                        "type": "string"
+                    },
+                    "type": {
+                        "description": "Data type of the attribute",
+                        "type": "string"
+                    },
+                    "ordering": {
+                        "description": "Ordering position of the attribute type",
+                        "type": "integer"
+                    },
+                    "hidden": {
+                        "description": "Indicates whether the attribute type is hidden",
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
+            },
+            "AuthorityType": {
+                "description": "AuthorityType model",
+                "properties": {
+                    "idAuthorityType": {
+                        "description": "Unique identifier for the authority type",
+                        "type": "integer"
+                    },
+                    "name": {
+                        "description": "Name of the authority type",
+                        "type": "string"
+                    },
+                    "hidden": {
+                        "description": "Indicates whether the authority type is hidden",
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
+            },
+            "Communication": {
+                "description": "Communication model",
+                "properties": {
+                    "idCommunication": {
+                        "description": "Unique identifier for the communication",
+                        "type": "integer"
+                    },
+                    "idCommunicationType": {
+                        "description": "Identifier of the related communication type",
+                        "type": "integer"
+                    },
+                    "name": {
+                        "description": "Name of the communication",
+                        "type": "string"
+                    },
+                    "hidden": {
+                        "description": "Indicates whether the communication is hidden",
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
+            },
+            "CommunicationType": {
+                "description": "CommunicationType model",
+                "properties": {
+                    "idCommunicationType": {
+                        "description": "Unique identifier for the communication type",
+                        "type": "integer"
+                    },
+                    "name": {
+                        "description": "Name of the communication type",
+                        "type": "string"
+                    },
+                    "hidden": {
+                        "description": "Indicates whether the communication type is hidden",
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
+            },
+            "Company": {
+                "description": "Company model",
+                "properties": {
+                    "idCompany": {
+                        "description": "Unique identifier for the company",
+                        "type": "integer"
+                    },
+                    "name": {
+                        "description": "Name of the company",
+                        "type": "string"
+                    },
+                    "address": {
+                        "description": "Address of the company",
+                        "type": "string"
+                    },
+                    "ic": {
+                        "description": "Company identification number",
+                        "type": "string"
+                    },
+                    "dic": {
+                        "description": "Tax identification number of the company",
+                        "type": "string"
+                    },
+                    "www": {
+                        "description": "Website of the company",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "CompanyType": {
+                "description": "CompanyType model",
+                "properties": {
+                    "idCompanyType": {
+                        "description": "Unique identifier for the company type",
+                        "type": "integer"
+                    },
+                    "name": {
+                        "description": "Name of the company type",
+                        "type": "string"
+                    },
+                    "hidden": {
+                        "description": "Indicates whether the company type is hidden",
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
+            },
+            "Contact": {
+                "description": "Contact model",
+                "properties": {
+                    "idContact": {
+                        "description": "Unique identifier for the contact",
+                        "type": "integer"
+                    },
+                    "name": {
+                        "description": "Name of the contact",
+                        "type": "string"
+                    },
+                    "phone": {
+                        "description": "Phone number of the contact",
+                        "type": "string"
+                    },
+                    "email": {
+                        "description": "Email address of the contact",
+                        "type": "string"
+                    },
+                    "active": {
+                        "description": "Indicates whether the contact is active",
+                        "type": "boolean"
+                    },
+                    "updated": {
+                        "description": "Timestamp of the last update",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_by": {
+                        "description": "Identifier of the user who last updated the contact",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "ContactType": {
+                "description": "ContactType model",
+                "properties": {
+                    "idContactType": {
+                        "description": "Unique identifier for the contact type",
+                        "type": "integer"
+                    },
+                    "name": {
+                        "description": "Name of the contact type",
+                        "type": "string"
+                    },
+                    "nameEn": {
+                        "description": "English name of the contact type",
+                        "type": "string"
+                    },
+                    "hidden": {
+                        "description": "Indicates whether the contact type is hidden",
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
+            },
+            "DeadlineType": {
+                "description": "DeadlineType model",
+                "properties": {
+                    "idDeadlineType": {
+                        "description": "Unique identifier for the deadline type",
+                        "type": "integer"
+                    },
+                    "name": {
+                        "description": "Name of the deadline type",
+                        "type": "string"
+                    },
+                    "nameEn": {
+                        "description": "English name of the deadline type",
+                        "type": "string"
+                    },
+                    "availableInPhase": {
+                        "description": "Phase in which the deadline type is available",
+                        "type": "string"
+                    },
+                    "hidden": {
+                        "description": "Indicates whether the deadline type is hidden",
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
+            },
+            "FinancialSource": {
+                "description": "FinancialSource model",
+                "properties": {
+                    "idFinSource": {
+                        "description": "Unique identifier for the financial source",
+                        "type": "integer"
+                    },
+                    "name": {
+                        "description": "Name of the financial source",
+                        "type": "string"
+                    },
+                    "hidden": {
+                        "description": "Indicates whether the financial source is hidden",
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
+            },
+            "ObjectType": {
+                "description": "ObjectType model",
+                "properties": {
+                    "idObjectType": {
+                        "description": "Unique identifier for the object type",
+                        "type": "integer"
+                    },
+                    "name": {
+                        "description": "Name of the object type",
+                        "type": "string"
+                    },
+                    "hidden": {
+                        "description": "Indicates whether the object type is hidden",
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
+            },
+            "Ou": {
+                "description": "Ou model",
+                "properties": {
+                    "idOu": {
+                        "description": "Unique identifier for the organizational unit",
+                        "type": "integer"
+                    },
+                    "name": {
+                        "description": "Name of the organizational unit",
+                        "type": "string"
+                    },
+                    "hidden": {
+                        "description": "Indicates whether the organizational unit is hidden",
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
+            },
+            "Phase": {
+                "description": "Phase model",
+                "properties": {
+                    "idPhase": {
+                        "description": "Unique identifier for the phase",
+                        "type": "integer"
+                    },
+                    "name": {
+                        "description": "Name of the phase",
+                        "type": "string"
+                    },
+                    "nameEn": {
+                        "description": "English name of the phase",
+                        "type": "string"
+                    },
+                    "level": {
+                        "description": "Level of the phase",
+                        "type": "integer"
+                    },
+                    "phasing": {
+                        "description": "Phasing details of the phase",
+                        "type": "string"
+                    },
+                    "phaseColor": {
+                        "description": "Color associated with the phase",
+                        "type": "string"
+                    },
+                    "phaseColorClass": {
+                        "description": "CSS class for the phase color",
+                        "type": "string"
+                    },
+                    "hidden": {
+                        "description": "Indicates whether the phase is hidden",
+                        "type": "boolean"
+                    },
+                    "phaseForLiteProject": {
+                        "description": "Indicates if the phase is for lite projects",
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
+            },
+            "PriceSubtype": {
+                "description": "PriceSubtype model",
+                "properties": {
+                    "idPriceSubtypes": {
+                        "description": "Unique identifier for the price subtype",
+                        "type": "integer"
+                    },
+                    "name": {
+                        "description": "Name of the price subtype",
+                        "type": "string"
+                    },
+                    "hidden": {
+                        "description": "Indicates whether the price subtype is hidden",
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
+            },
+            "PriceType": {
+                "description": "PriceType model",
+                "properties": {
+                    "idPriceType": {
+                        "description": "Unique identifier for the price type",
+                        "type": "integer"
+                    },
+                    "name": {
+                        "description": "Name of the price type",
+                        "type": "string"
+                    },
+                    "nameEn": {
+                        "description": "English name of the price type",
+                        "type": "string"
+                    },
+                    "hidden": {
+                        "description": "Indicates whether the price type is hidden",
+                        "type": "boolean"
+                    },
+                    "idPriceSubtype": {
+                        "description": "Identifier of the related price subtype",
+                        "type": "integer"
+                    },
+                    "ordering": {
+                        "description": "Ordering position of the price type",
+                        "type": "integer"
+                    }
+                },
+                "type": "object"
+            },
+            "PriorityScaleConfig": {
+                "description": "PriorityScaleConfig model",
+                "properties": {
+                    "idPriorityConfig": {
+                        "description": "Unique identifier for the priority scale configuration",
+                        "type": "integer"
+                    },
+                    "configJson": {
+                        "description": "JSON configuration for the priority scale",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "ProjectSubtype": {
+                "description": "ProjectSubtype model",
+                "properties": {
+                    "idProjectSubtype": {
+                        "description": "Unique identifier for the project subtype",
+                        "type": "integer"
+                    },
+                    "name": {
+                        "description": "Name of the project subtype",
+                        "type": "string"
+                    },
+                    "hidden": {
+                        "description": "Indicates whether the project subtype is hidden",
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
+            },
+            "ProjectType": {
+                "description": "ProjectType model",
+                "properties": {
+                    "idProjectType": {
+                        "description": "Unique identifier for the project type",
+                        "type": "integer"
+                    },
+                    "name": {
+                        "description": "Name of the project type",
+                        "type": "string"
+                    },
+                    "hidden": {
+                        "description": "Indicates whether the project type is hidden",
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
+            },
+            "RelationType": {
+                "description": "RelationType model",
+                "properties": {
+                    "idRelationType": {
+                        "description": "Unique identifier for the relation type",
+                        "type": "integer"
+                    },
+                    "name": {
+                        "description": "Name of the relation type",
+                        "type": "string"
+                    },
+                    "description": {
+                        "description": "Description of the relation type",
+                        "type": "string"
+                    },
+                    "relationFromProjectRelation": {
+                        "description": "Indicates if the relation originates from a project relation",
+                        "type": "boolean"
+                    },
+                    "hidden": {
+                        "description": "Indicates whether the relation type is hidden",
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
+            },
+            "RoleType": {
+                "description": "RoleType model",
+                "properties": {
+                    "idRoleType": {
+                        "description": "Unique identifier for the role type",
+                        "type": "integer"
+                    },
+                    "name": {
+                        "description": "Name of the role type",
+                        "type": "string"
+                    },
+                    "description": {
+                        "description": "Description of the role type",
+                        "type": "string"
+                    },
+                    "hidden": {
+                        "description": "Indicates whether the role type is hidden",
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
+            },
+            "SuspensionReason": {
+                "description": "SuspensionReason model",
+                "properties": {
+                    "idSuspensionReason": {
+                        "description": "Unique identifier for the suspension reason",
+                        "type": "integer"
+                    },
+                    "name": {
+                        "description": "Name of the suspension reason",
+                        "type": "string"
+                    },
+                    "hidden": {
+                        "description": "Indicates whether the suspension reason is hidden",
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
+            },
+            "SuspensionSource": {
+                "description": "SuspensionSource model",
+                "properties": {
+                    "idSuspensionSource": {
+                        "description": "Unique identifier for the suspension source",
+                        "type": "integer"
+                    },
+                    "name": {
+                        "description": "Name of the suspension source",
+                        "type": "string"
+                    },
+                    "hidden": {
+                        "description": "Indicates whether the suspension source is hidden",
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
+            },
+            "TaskStatus": {
+                "description": "TaskStatus model",
+                "properties": {
+                    "idTaskStatus": {
+                        "description": "Unique identifier for the task status",
+                        "type": "integer"
+                    },
+                    "name": {
+                        "description": "Name of the task status",
+                        "type": "string"
+                    },
+                    "isTerminal": {
+                        "description": "Indicates if the task status is terminal",
+                        "type": "boolean"
+                    },
+                    "isEnabled": {
+                        "description": "Indicates if the task status is enabled",
+                        "type": "boolean"
+                    },
+                    "rank": {
+                        "description": "Rank of the task status",
+                        "type": "integer"
+                    },
+                    "statusColor": {
+                        "description": "Color associated with the task status",
+                        "type": "string"
+                    },
+                    "statusClass": {
+                        "description": "CSS class for the task status",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "Warranty": {
+                "description": "Warranty model",
+                "properties": {
+                    "idWarranty": {
+                        "description": "Unique identifier for the warranty",
+                        "type": "integer"
+                    },
+                    "period": {
+                        "description": "Warranty period in months",
+                        "type": "integer"
+                    },
+                    "idWarrantyType": {
+                        "description": "Identifier of the associated warranty type",
+                        "type": "integer"
+                    },
+                    "hidden": {
+                        "description": "Indicates whether the warranty is hidden",
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
+            },
+            "WarrantyType": {
+                "description": "WarrantyType model",
+                "properties": {
+                    "idWarrantyType": {
+                        "description": "Unique identifier for the warranty type",
+                        "type": "integer"
+                    },
+                    "name": {
+                        "description": "Name of the warranty type",
+                        "type": "string"
+                    },
+                    "hidden": {
+                        "description": "Indicates whether the warranty type is hidden",
+                        "type": "boolean"
+                    },
+                    "nameForPOST": {
+                        "description": "Name used for POST requests",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "ActionLog": {
+                "description": "ActionLog model",
+                "properties": {
+                    "idAction": {
+                        "description": "Unique identifier for the action log entry",
+                        "type": "integer"
+                    },
+                    "idActionType": {
+                        "description": "Identifier of the associated action type",
+                        "type": "integer"
+                    },
+                    "idLocalProject": {
+                        "description": "Identifier of the associated local project",
+                        "type": "integer"
+                    },
+                    "username": {
+                        "description": "Username of the user who performed the action",
+                        "type": "string"
+                    },
+                    "created": {
+                        "description": "Timestamp when the action was logged",
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "ObjectModel": {
+                "description": "ObjectModel model",
+                "properties": {
+                    "idObject": {
+                        "description": "Unique identifier for the object",
+                        "type": "integer"
+                    },
+                    "idProject": {
+                        "description": "Identifier of the associated project",
+                        "type": "integer"
+                    },
+                    "idObjectType": {
+                        "description": "Identifier of the associated object type",
+                        "type": "integer"
+                    },
+                    "name": {
+                        "description": "Name of the object",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "ProjectCommunication": {
+                "description": "ProjectCommunication model",
+                "properties": {
+                    "idProject": {
+                        "description": "Identifier for the project",
+                        "type": "integer"
+                    },
+                    "idCommunication": {
+                        "description": "Identifier for the communication",
+                        "type": "integer"
+                    },
+                    "stationingFrom": {
+                        "description": "Starting stationing value",
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "stationingTo": {
+                        "description": "Ending stationing value",
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "gpsN1": {
+                        "description": "GPS coordinate N1",
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "gpsN2": {
+                        "description": "GPS coordinate N2",
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "gpsE1": {
+                        "description": "GPS coordinate E1",
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "gpsE2": {
+                        "description": "GPS coordinate E2",
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "allPointsWgs": {
+                        "description": "All points in WGS coordinate system (serialized)",
+                        "type": "string"
+                    },
+                    "allPointsSjtsk": {
+                        "description": "All points in SJTSK coordinate system (serialized)",
+                        "type": "string"
+                    },
+                    "geometryWgs": {
+                        "description": "Geometry in WGS coordinate system (serialized)",
+                        "type": "string"
+                    },
+                    "geometrySjtsk": {
+                        "description": "Geometry in SJTSK coordinate system (serialized)",
+                        "type": "string"
+                    },
+                    "comment": {
+                        "description": "Additional comment",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "ProjectCompany": {
+                "description": "ProjectCompany model",
+                "properties": {
+                    "idProject": {
+                        "description": "Identifier for the project",
+                        "type": "integer"
+                    },
+                    "idCompany": {
+                        "description": "Identifier for the company",
+                        "type": "integer"
+                    },
+                    "idCompanyType": {
+                        "description": "Identifier for the company type",
+                        "type": "integer"
+                    }
+                },
+                "type": "object"
+            },
+            "ProjectContact": {
+                "description": "ProjectContact model",
+                "properties": {
+                    "idProject": {
+                        "description": "Identifier for the project",
+                        "type": "integer"
+                    },
+                    "idContact": {
+                        "description": "Identifier for the contact",
+                        "type": "integer"
+                    },
+                    "idContactType": {
+                        "description": "Identifier for the contact type",
+                        "type": "integer"
+                    }
+                },
+                "type": "object"
+            },
+            "ProjectRelation": {
+                "description": "ProjectRelation pivot model",
+                "properties": {
+                    "idRelation": {
+                        "description": "Unique identifier for the relation",
+                        "type": "integer"
+                    },
+                    "username": {
+                        "description": "Username of the user who created the relation",
+                        "type": "string"
+                    },
+                    "idProject": {
+                        "description": "Identifier of the source project",
+                        "type": "integer"
+                    },
+                    "idRelationType": {
+                        "description": "Identifier for the relation type",
+                        "type": "integer"
+                    },
+                    "idProjectRelation": {
+                        "description": "Identifier for the related project",
+                        "type": "integer"
+                    },
+                    "created": {
+                        "description": "Timestamp when the relation was created",
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "ProjectTypeProjectSubtype": {
+                "description": "Pivot model linking project types and subtypes with a priority configuration",
+                "properties": {
+                    "idProjectType": {
+                        "description": "Identifier for the project type",
+                        "type": "integer"
+                    },
+                    "idProjectSubtype": {
+                        "description": "Identifier for the project subtype",
+                        "type": "integer"
+                    },
+                    "idPriorityConfig": {
+                        "description": "Identifier for the priority configuration",
+                        "type": "integer"
+                    }
+                },
+                "type": "object"
+            },
+            "Deadline": {
+                "description": "Deadline model",
+                "properties": {
+                    "idDeadline": {
+                        "description": "Unique identifier for the deadline",
+                        "type": "integer"
+                    },
+                    "idProject": {
+                        "description": "Identifier for the associated project",
+                        "type": "integer"
+                    },
+                    "idDeadlineType": {
+                        "description": "Identifier for the deadline type",
+                        "type": "integer"
+                    },
+                    "value": {
+                        "description": "Deadline value as a date",
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "note": {
+                        "description": "Additional note for the deadline",
+                        "type": "string"
+                    },
+                    "inserted": {
+                        "description": "Date when the deadline was inserted",
+                        "type": "string",
+                        "format": "date"
+                    }
+                },
+                "type": "object"
+            },
+            "Price": {
+                "description": "Price model",
+                "properties": {
+                    "idPriceType": {
+                        "description": "Identifier for the price type",
+                        "type": "integer"
+                    },
+                    "idProject": {
+                        "description": "Identifier for the project",
+                        "type": "integer"
+                    },
+                    "value": {
+                        "description": "Price value",
+                        "type": "number",
+                        "format": "float"
+                    }
+                },
+                "type": "object"
+            },
+            "Project": {
+                "description": "Project model",
+                "properties": {
+                    "idProject": {
+                        "description": "Unique identifier for the project",
+                        "type": "integer"
+                    },
+                    "idProjectType": {
+                        "description": "Identifier for the project type",
+                        "type": "integer"
+                    },
+                    "idProjectSubtype": {
+                        "description": "Identifier for the project subtype",
+                        "type": "integer"
+                    },
+                    "technologicalProjectType": {
+                        "description": "The technological type of the project",
+                        "type": "string"
+                    },
+                    "created": {
+                        "description": "Timestamp when the project was created",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "name": {
+                        "description": "Name of the project",
+                        "type": "string"
+                    },
+                    "subject": {
+                        "description": "Subject of the project",
+                        "type": "string"
+                    },
+                    "editor": {
+                        "description": "Username of the project's editor",
+                        "type": "string"
+                    },
+                    "author": {
+                        "description": "Username of the project's author",
+                        "type": "string"
+                    },
+                    "idFinSource": {
+                        "description": "Identifier for the financial source",
+                        "type": "integer"
+                    },
+                    "idFinSourcePD": {
+                        "description": "Identifier for the PD financial source",
+                        "type": "integer"
+                    },
+                    "idPhase": {
+                        "description": "Identifier for the project phase",
+                        "type": "integer"
+                    },
+                    "idLocalProject": {
+                        "description": "Local project identifier that points to a specific project version (see ProjectVersion model)",
+                        "type": "integer"
+                    },
+                    "ginisOrAthena": {
+                        "description": "Indicates whether the project uses Ginis or Athena",
+                        "type": "string"
+                    },
+                    "noteGinisOrAthena": {
+                        "description": "Additional note regarding Ginis or Athena",
+                        "type": "string"
+                    },
+                    "deletedDate": {
+                        "description": "Timestamp when the project was deleted",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "deleteAuthor": {
+                        "description": "Username of the user who deleted the project",
+                        "type": "string"
+                    },
+                    "inConcept": {
+                        "description": "Indicates if the project is in the concept stage",
+                        "type": "boolean"
+                    },
+                    "dateEvidence": {
+                        "description": "Indicates if the project has date evidence",
+                        "type": "boolean"
+                    },
+                    "deadlineDurUrRequired": {
+                        "description": "Indicates if DUR/UR deadline is required",
+                        "type": "boolean"
+                    },
+                    "deadlineEIARequired": {
+                        "description": "Indicates if EIA deadline is required",
+                        "type": "boolean"
+                    },
+                    "deadlineStudyRequired": {
+                        "description": "Indicates if study deadline is required",
+                        "type": "boolean"
+                    },
+                    "deadlineTesRequired": {
+                        "description": "Indicates if TES deadline is required",
+                        "type": "boolean"
+                    },
+                    "mergedDeadlines": {
+                        "description": "Info about merged deadlines",
+                        "type": "string"
+                    },
+                    "constructionTime": {
+                        "description": "Construction time details",
+                        "type": "string"
+                    },
+                    "constructionTimeWeeksOrMonths": {
+                        "description": "Construction time expressed in weeks or months",
+                        "type": "string"
+                    },
+                    "mergePricePDAD": {
+                        "description": "Merged price for PDAD",
+                        "type": "string"
+                    },
+                    "constructionWarrantyPeriod": {
+                        "description": "Construction warranty period in months",
+                        "type": "integer"
+                    },
+                    "technologyWarrantyPeriod": {
+                        "description": "Technology warranty period in months",
+                        "type": "integer"
+                    },
+                    "priorityAtts": {
+                        "description": "JSON object holding priority attributes",
+                        "type": "object"
+                    },
+                    "passable": {
+                        "description": "Indicates whether the project is passable",
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
+            },
+            "ProjectVersion": {
+                "description": "ProjectVersion model",
+                "properties": {
+                    "idLocalProject": {
+                        "description": "Unique identifier for the project version",
+                        "type": "integer"
+                    },
+                    "idPhase": {
+                        "description": "Identifier for the phase associated with this project version",
+                        "type": "integer"
+                    },
+                    "assignments": {
+                        "description": "Assignments data related to this project version (if applicable)",
+                        "type": "string"
+                    },
+                    "idProject": {
+                        "description": "Identifier for the parent project",
+                        "type": "integer"
+                    },
+                    "created": {
+                        "description": "Timestamp when the project version was created",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "validTo": {
+                        "description": "Expiration timestamp for this project version",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "historyDump": {
+                        "description": "JSON dump of the project history",
+                        "type": "object"
+                    },
+                    "author": {
+                        "description": "Author of the project version",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "Suspension": {
+                "description": "Suspension model",
+                "properties": {
+                    "idSuspension": {
+                        "description": "Unique identifier for the suspension",
+                        "type": "integer"
+                    },
+                    "idProject": {
+                        "description": "Identifier for the associated project",
+                        "type": "integer"
+                    },
+                    "idSuspensionSource": {
+                        "description": "Identifier for the suspension source",
+                        "type": "integer"
+                    },
+                    "idSuspensionReason": {
+                        "description": "Identifier for the suspension reason",
+                        "type": "integer"
+                    },
+                    "comment": {
+                        "description": "Comment or note regarding the suspension",
+                        "type": "string"
+                    },
+                    "dateFrom": {
+                        "description": "Start date of the suspension",
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "dateTo": {
+                        "description": "End date of the suspension",
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "deleted": {
+                        "description": "Timestamp when the suspension was deleted",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "username": {
+                        "description": "Username of the user who recorded the suspension",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "Task": {
+                "description": "Task model",
+                "properties": {
+                    "idTask": {
+                        "description": "Unique identifier for the task",
+                        "type": "integer"
+                    },
+                    "createdBy": {
+                        "description": "Username of the user who created the task",
+                        "type": "string"
+                    },
+                    "created": {
+                        "description": "Timestamp when the task was created",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "deletedBy": {
+                        "description": "Username of the user who deleted the task",
+                        "type": "string"
+                    },
+                    "deleted": {
+                        "description": "Timestamp when the task was deleted",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "relatedToProjectId": {
+                        "description": "Identifier of the project to which this task belongs",
+                        "type": "integer"
+                    },
+                    "privateTask": {
+                        "description": "Indicates if the task is private",
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
+            },
+            "TaskReaction": {
+                "description": "TaskReaction model",
+                "properties": {
+                    "idTask": {
+                        "description": "Identifier for the task that this reaction belongs to",
+                        "type": "integer"
+                    },
+                    "reaction": {
+                        "description": "The reaction content or type",
+                        "type": "string"
+                    },
+                    "created": {
+                        "description": "Timestamp when the reaction was created",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "createdBy": {
+                        "description": "Username of the user who created the reaction",
+                        "type": "string"
+                    },
+                    "deleted": {
+                        "description": "Timestamp when the reaction was deleted, if applicable",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "deletedBy": {
+                        "description": "Username of the user who deleted the reaction, if applicable",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "TaskVersion": {
+                "description": "TaskVersion model",
+                "properties": {
+                    "idTask": {
+                        "description": "Identifier for the task (foreign key to tasksProject)",
+                        "type": "integer"
+                    },
+                    "name": {
+                        "description": "Name of the task version",
+                        "type": "string"
+                    },
+                    "description": {
+                        "description": "Description of the task version",
+                        "type": "string"
+                    },
+                    "created": {
+                        "description": "Timestamp when the task version was created",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "createdBy": {
+                        "description": "Username of the user who created the task version",
+                        "type": "string"
+                    },
+                    "idTaskStatus": {
+                        "description": "Identifier for the current status of the task version (foreign key to rangeTaskStatuses)",
+                        "type": "integer"
+                    },
+                    "deadlineTo": {
+                        "description": "Deadline for the task version",
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "CalendarEvent": {
+                "description": "CalendarEvent model",
+                "properties": {
+                    "idEvent": {
+                        "description": "Unique identifier for the calendar event",
+                        "type": "integer"
+                    },
+                    "username": {
+                        "description": "Username of the owner of the event",
+                        "type": "string"
+                    },
+                    "title": {
+                        "description": "Title of the event",
+                        "type": "string"
+                    },
+                    "description": {
+                        "description": "Description of the event",
+                        "type": "string"
+                    },
+                    "eventStart": {
+                        "description": "Start time of the event",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "eventEnd": {
+                        "description": "End time of the event",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "deleted": {
+                        "description": "Indicates if the event is deleted",
+                        "type": "boolean"
+                    },
+                    "created": {
+                        "description": "Timestamp when the event was created",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "deletedTimestamp": {
+                        "description": "Timestamp when the event was deleted",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "idOu": {
+                        "description": "Identifier for the organizational unit associated with the event",
+                        "type": "integer"
+                    },
+                    "deletedAuthor": {
+                        "description": "Username of the user who deleted the event",
+                        "type": "string"
+                    },
+                    "idEventUpdated": {
+                        "description": "Identifier of the event update",
+                        "type": "integer"
+                    }
+                },
+                "type": "object"
+            },
+            "Collaborator": {
+                "description": "Collaborator model linking a user with their assigned collaborator",
+                "properties": {
+                    "id": {
+                        "description": "Unique identifier for the collaborator record",
+                        "type": "integer"
+                    },
+                    "username": {
+                        "description": "Username of the user who owns or created the collaborator relationship",
+                        "type": "string"
+                    },
+                    "collaborator": {
+                        "description": "Username of the collaborator assigned to the user",
+                        "type": "string"
+                    },
+                    "created": {
+                        "description": "Timestamp when the collaborator relationship was created",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "begin": {
+                        "description": "Start time of the collaboration period",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "expiry": {
+                        "description": "Expiry time of the collaborator relationship",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "active": {
+                        "description": "Indicates whether the collaborator relationship is currently active",
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
+            },
+            "Notification": {
+                "description": "Notification model",
+                "properties": {
+                    "idNotification": {
+                        "description": "Unique identifier for the notification",
+                        "type": "integer"
+                    },
+                    "username": {
+                        "description": "Username of the user to whom the notification belongs",
+                        "type": "string"
+                    },
+                    "idAction": {
+                        "description": "Identifier for the action log that this notification refers to",
+                        "type": "integer"
+                    },
+                    "viewed": {
+                        "description": "Timestamp when the notification was viewed",
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "ReportConfig": {
+                "description": "Configuration model for user reports",
+                "properties": {
+                    "idReportConfig": {
+                        "description": "Unique identifier for the report configuration",
+                        "type": "integer"
+                    },
+                    "note": {
+                        "description": "Note or description for the report configuration",
+                        "type": "string"
+                    },
+                    "ouIds": {
+                        "description": "Comma-separated list of organizational unit IDs associated with the report",
+                        "type": "string"
+                    },
+                    "usernames": {
+                        "description": "Comma-separated list of usernames to which the report configuration applies",
+                        "type": "string"
+                    },
+                    "reportType": {
+                        "description": "Type of report configuration",
+                        "type": "string",
+                        "enum": [
+                            "editor",
+                            "manager",
+                            "noreport",
+                            "dummy"
+                        ]
+                    }
+                },
+                "type": "object"
+            },
+            "User": {
+                "title": "User",
+                "required": [
+                    "username",
+                    "name",
+                    "email",
+                    "idOu",
+                    "idRoleType",
+                    "idAuthorityType"
+                ],
+                "properties": {
+                    "username": {
+                        "description": "Unique identifier for the user (primary key)",
+                        "type": "string"
+                    },
+                    "name": {
+                        "description": "The full name of the user",
+                        "type": "string"
+                    },
+                    "email": {
+                        "description": "The email address of the user",
+                        "type": "string"
+                    },
+                    "idOu": {
+                        "description": "Identifier for the organizational unit the user belongs to",
+                        "type": "integer"
+                    },
+                    "idRoleType": {
+                        "description": "Identifier for the user's role type",
+                        "type": "integer"
+                    },
+                    "idAuthorityType": {
+                        "description": "Identifier for the user's authority type",
+                        "type": "integer"
+                    },
+                    "accessDenied": {
+                        "description": "Indicates if the user is currently denied access",
+                        "type": "boolean"
+                    },
+                    "idReportConfig": {
+                        "description": "Identifier for the associated report configuration",
+                        "type": "integer"
+                    },
+                    "editorReport": {
+                        "description": "Indicates if the user is an editor for reports",
+                        "type": "boolean"
+                    },
+                    "created": {
+                        "description": "Timestamp when the user was created",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated": {
+                        "description": "Timestamp when the user was last updated",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "deleted": {
+                        "description": "Timestamp when the user was deleted",
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "ExternalApi": {
+                "description": "View model for project external API data",
+                "properties": {
+                    "id_projektu": {
+                        "description": "Unique identifier for the project",
+                        "type": "integer"
+                    },
+                    "cena": {
+                        "description": "Price associated with the project",
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "komunikace_array": {
+                        "description": "Serialized JSON array of communications",
+                        "type": "object"
+                    },
+                    "priorita_skore": {
+                        "description": "Priority score for the project",
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "priorita_korekce": {
+                        "description": "Priority correction factor",
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "datum_posledni_zmeny": {
+                        "description": "Timestamp of the last update",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "predani_staveniste": {
+                        "description": "Datetime when handing over the construction site",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "dokonceni_stavby": {
+                        "description": "Datetime when the construction was completed",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "zaruka_technologicka": {
+                        "description": "Datetime for the technological warranty period",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "zaruka_stavebni": {
+                        "description": "Datetime for the construction warranty period",
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            }
+        },
         "securitySchemes": {
             "bearerAuth": {
                 "type": "http",

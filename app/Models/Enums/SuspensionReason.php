@@ -4,6 +4,33 @@ namespace App\Models\Enums;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Class SuspensionReason
+ *
+ * Represents a reason for suspension in the system.
+ *
+ * @package App\Models\Enums
+ *
+ * @OA\Schema(
+ *     schema="SuspensionReason",
+ *     description="SuspensionReason model",
+ *     @OA\Property(
+ *         property="idSuspensionReason",
+ *         type="integer",
+ *         description="Unique identifier for the suspension reason"
+ *     ),
+ *     @OA\Property(
+ *         property="name",
+ *         type="string",
+ *         description="Name of the suspension reason"
+ *     ),
+ *     @OA\Property(
+ *         property="hidden",
+ *         type="boolean",
+ *         description="Indicates whether the suspension reason is hidden"
+ *     )
+ * )
+ */
 class SuspensionReason extends Model
 {
     /**
@@ -34,6 +61,6 @@ class SuspensionReason extends Model
      */
     protected $fillable = [
         'name',
-        'hidden'
+        'hidden',
     ];
 }

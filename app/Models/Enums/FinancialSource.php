@@ -4,6 +4,33 @@ namespace App\Models\Enums;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Class FinancialSource
+ *
+ * Represents a financial source in the system.
+ *
+ * @package App\Models\Enums
+ *
+ * @OA\Schema(
+ *     schema="FinancialSource",
+ *     description="FinancialSource model",
+ *     @OA\Property(
+ *         property="idFinSource",
+ *         type="integer",
+ *         description="Unique identifier for the financial source"
+ *     ),
+ *     @OA\Property(
+ *         property="name",
+ *         type="string",
+ *         description="Name of the financial source"
+ *     ),
+ *     @OA\Property(
+ *         property="hidden",
+ *         type="boolean",
+ *         description="Indicates whether the financial source is hidden"
+ *     )
+ * )
+ */
 class FinancialSource extends Model
 {
     /**
@@ -34,6 +61,6 @@ class FinancialSource extends Model
      */
     protected $fillable = [
         'name',
-        'hidden'
+        'hidden',
     ];
 }

@@ -5,29 +5,83 @@ namespace App\Models\Tasks;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * Class TaskVersion
+ *
+ * Represents a version of a task.
+ *
+ * @package App\Models\Tasks
+ *
+ * @OA\Schema(
+ *     schema="TaskVersion",
+ *     description="TaskVersion model",
+ *     @OA\Property(
+ *         property="idTask",
+ *         type="integer",
+ *         description="Identifier for the task (foreign key to tasksProject)"
+ *     ),
+ *     @OA\Property(
+ *         property="name",
+ *         type="string",
+ *         description="Name of the task version"
+ *     ),
+ *     @OA\Property(
+ *         property="description",
+ *         type="string",
+ *         description="Description of the task version"
+ *     ),
+ *     @OA\Property(
+ *         property="created",
+ *         type="string",
+ *         format="date-time",
+ *         description="Timestamp when the task version was created"
+ *     ),
+ *     @OA\Property(
+ *         property="createdBy",
+ *         type="string",
+ *         description="Username of the user who created the task version"
+ *     ),
+ *     @OA\Property(
+ *         property="idTaskStatus",
+ *         type="integer",
+ *         description="Identifier for the current status of the task version (foreign key to rangeTaskStatuses)"
+ *     ),
+ *     @OA\Property(
+ *         property="deadlineTo",
+ *         type="string",
+ *         format="date-time",
+ *         description="Deadline for the task version"
+ *     )
+ * )
+ */
 class TaskVersion extends Model
 {
     /**
      * The table associated with the model.
+     *
+     * @var string
      */
     protected $table = 'taskVersions';
 
     /**
-     * The primary key is a composite of (idTask, created).
-     * Eloquent doesn't natively handle composite keys,
-     * so we set $primaryKey to null and disable incrementing.
+     * The primary key is composite, so set this to null.
+     *
+     * @var null
      */
     protected $primaryKey = null;
     public $incrementing = false;
 
     /**
-     * The table doesn't use created_at / updated_at columns,
-     * so we disable automatic timestamps.
+     * Disables automatic timestamps (created_at, updated_at).
+     *
+     * @var bool
      */
     public $timestamps = false;
 
     /**
      * The attributes that can be mass assigned.
+     *
+     * @var array
      */
     protected $fillable = [
         'idTask',
@@ -40,16 +94,24 @@ class TaskVersion extends Model
     ];
 
     /**
-     * The attributes that should be cast to native types.
+     * Cast attributes to native types.
+     *
+     * @var array
      */
     protected $casts = [
         'created'    => 'datetime',
         'deadlineTo' => 'datetime',
     ];
 
+    /************************************************
+     *             RELATIONSHIPS
+     ************************************************/
+
     /**
-     * Each taskVersion belongs to a Task (tasksProject).
+     * Each TaskVersion belongs to a Task.
      * taskVersions.idTask -> tasksProject.idTask
+     *
+     * @return BelongsTo
      */
     public function task(): BelongsTo
     {
@@ -57,8 +119,10 @@ class TaskVersion extends Model
     }
 
     /**
-     * If idTaskStatus references rangeTaskStatuses.idTaskStatus,
-     * define a relationship here. For example:
+     * Each TaskVersion has a status.
+     * taskVersions.idTaskStatus -> rangeTaskStatuses.idTaskStatus
+     *
+     * @return BelongsTo
      */
     public function status(): BelongsTo
     {
@@ -66,7 +130,10 @@ class TaskVersion extends Model
     }
 
     /**
-     * If createdBy references users.username, add a belongsTo:
+     * Each TaskVersion is created by a user.
+     * taskVersions.createdBy -> users.username
+     *
+     * @return BelongsTo
      */
     public function creator(): BelongsTo
     {

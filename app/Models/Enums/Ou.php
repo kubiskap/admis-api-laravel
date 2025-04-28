@@ -4,6 +4,33 @@ namespace App\Models\Enums;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Class Ou
+ *
+ * Represents an organizational unit (OU) in the system.
+ *
+ * @package App\Models\Enums
+ *
+ * @OA\Schema(
+ *     schema="Ou",
+ *     description="Ou model",
+ *     @OA\Property(
+ *         property="idOu",
+ *         type="integer",
+ *         description="Unique identifier for the organizational unit"
+ *     ),
+ *     @OA\Property(
+ *         property="name",
+ *         type="string",
+ *         description="Name of the organizational unit"
+ *     ),
+ *     @OA\Property(
+ *         property="hidden",
+ *         type="boolean",
+ *         description="Indicates whether the organizational unit is hidden"
+ *     )
+ * )
+ */
 class Ou extends Model
 {
     /**
@@ -33,5 +60,7 @@ class Ou extends Model
      * @var array
      */
     protected $fillable = [
+        'name',
+        'hidden',
     ];
 }

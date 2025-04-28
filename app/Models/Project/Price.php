@@ -5,29 +5,64 @@ namespace App\Models\Project;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * Class Price
+ *
+ * Represents the price information for a project.
+ *
+ * @package App\Models\Project
+ *
+ * @OA\Schema(
+ *     schema="Price",
+ *     description="Price model",
+ *     @OA\Property(
+ *         property="idPriceType",
+ *         type="integer",
+ *         description="Identifier for the price type"
+ *     ),
+ *     @OA\Property(
+ *         property="idProject",
+ *         type="integer",
+ *         description="Identifier for the project"
+ *     ),
+ *     @OA\Property(
+ *         property="value",
+ *         type="number",
+ *         format="float",
+ *         description="Price value"
+ *     )
+ * )
+ */
 class Price extends Model
 {
     /**
      * The table associated with the model.
+     *
+     * @var string
      */
     protected $table = 'prices';
 
     /**
-     * Indicates if the model should be timestamped (created_at, updated_at).
-     * The 'prices' table has no such columns, so set false.
+     * Indicates if the model should be timestamped.
+     *
+     * @var bool
      */
     public $timestamps = false;
 
     /**
-     * The table has a composite key (idPriceType, idProject).
-     * Eloquent does not natively support composite primary keys,
-     * so we disable incrementing and, if desired, set $primaryKey to null.
+     * The primary key for the table.
+     *
+     * Note: This table uses a composite key, so auto-incrementing is disabled.
+     *
+     * @var null
      */
-    protected $primaryKey = null;  // or 'idProject' if you want, but less accurate for a composite
+    protected $primaryKey = null;
     public $incrementing = false;
 
     /**
-     * The attributes that can be mass assigned.
+     * The attributes that are mass assignable.
+     *
+     * @var array
      */
     protected $fillable = [
         'idPriceType',
@@ -37,14 +72,22 @@ class Price extends Model
 
     /**
      * The attributes that should be cast to native types.
+     *
+     * @var array
      */
     protected $casts = [
         'value' => 'float',
     ];
 
+    /************************************************
+     *             RELATIONSHIPS
+     ************************************************/
+
     /**
-     * If you want to link each price row to its project (projects.idProject),
-     * define a belongsTo relationship:
+     * Get the project associated with this price.
+     * prices.idProject -> projects.idProject
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function project(): BelongsTo
     {
@@ -52,12 +95,13 @@ class Price extends Model
     }
 
     /**
-     * If you have a table for price types (rangePriceTypes) in your Enums folder,
-     * define a relationship similarly:
+     * Get the price type associated with this price.
+     * prices.idPriceType -> rangePriceTypes.idPriceType
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function priceType(): BelongsTo
     {
-        // Adjust the namespace/model name if your "rangePriceTypes" model is different
         return $this->belongsTo(\App\Models\Enums\PriceType::class, 'idPriceType', 'idPriceType');
     }
 }

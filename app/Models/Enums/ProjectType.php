@@ -1,10 +1,37 @@
 <?php
 
 namespace App\Models\Enums;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
+/**
+ * Class ProjectType
+ *
+ * Represents a type of project in the system.
+ *
+ * @package App\Models\Enums
+ *
+ * @OA\Schema(
+ *     schema="ProjectType",
+ *     description="ProjectType model",
+ *     @OA\Property(
+ *         property="idProjectType",
+ *         type="integer",
+ *         description="Unique identifier for the project type"
+ *     ),
+ *     @OA\Property(
+ *         property="name",
+ *         type="string",
+ *         description="Name of the project type"
+ *     ),
+ *     @OA\Property(
+ *         property="hidden",
+ *         type="boolean",
+ *         description="Indicates whether the project type is hidden"
+ *     )
+ * )
+ */
 class ProjectType extends Model
 {
     /**
@@ -35,11 +62,19 @@ class ProjectType extends Model
      */
     protected $fillable = [
         'name',
-        'hidden'
+        'hidden',
     ];
 
+    /************************************************
+     *             RELATIONSHIPS
+     ************************************************/
+
     /**
-     * Many-to-Many relationship to ProjectSubtype via type2subtype table.
+     * Many project types belong to many project subtypes (type2subtype).
+     * projectType.idProjectType -> type2subtype.idProjectType
+     * type2subtype.idProjectSubtype -> projectSubtype.idProjectSubtype
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
     public function subtypes(): BelongsToMany
     {
@@ -47,9 +82,9 @@ class ProjectType extends Model
             \App\Models\Enums\ProjectSubtype::class,
             'type2subtype',
             'idProjectType',
-            'idProjectSubtype',
+            'idProjectSubtype'
         )
         ->using(\App\Models\Pivots\ProjectTypeProjectSubtype::class)
-        ->withPivot('idPriorityConfig'); 
+        ->withPivot('idPriorityConfig');
     }
 }

@@ -4,6 +4,33 @@ namespace App\Models\Enums;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Class ObjectType
+ *
+ * Represents a type of object in the system.
+ *
+ * @package App\Models\Enums
+ *
+ * @OA\Schema(
+ *     schema="ObjectType",
+ *     description="ObjectType model",
+ *     @OA\Property(
+ *         property="idObjectType",
+ *         type="integer",
+ *         description="Unique identifier for the object type"
+ *     ),
+ *     @OA\Property(
+ *         property="name",
+ *         type="string",
+ *         description="Name of the object type"
+ *     ),
+ *     @OA\Property(
+ *         property="hidden",
+ *         type="boolean",
+ *         description="Indicates whether the object type is hidden"
+ *     )
+ * )
+ */
 class ObjectType extends Model
 {
     /**
@@ -34,6 +61,6 @@ class ObjectType extends Model
      */
     protected $fillable = [
         'name',
-        'hidden'
+        'hidden',
     ];
 }

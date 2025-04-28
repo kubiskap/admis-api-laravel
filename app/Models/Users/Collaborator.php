@@ -4,31 +4,90 @@ namespace App\Models\Users;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Class Collaborator
+ *
+ * Represents a collaborator relationship between users.
+ *
+ * @package App\Models\Users
+ *
+ * @OA\Schema(
+ *     schema="Collaborator",
+ *     description="Collaborator model linking a user with their assigned collaborator",
+ *     @OA\Property(
+ *         property="id",
+ *         type="integer",
+ *         description="Unique identifier for the collaborator record"
+ *     ),
+ *     @OA\Property(
+ *         property="username",
+ *         type="string",
+ *         description="Username of the user who owns or created the collaborator relationship"
+ *     ),
+ *     @OA\Property(
+ *         property="collaborator",
+ *         type="string",
+ *         description="Username of the collaborator assigned to the user"
+ *     ),
+ *     @OA\Property(
+ *         property="created",
+ *         type="string",
+ *         format="date-time",
+ *         description="Timestamp when the collaborator relationship was created"
+ *     ),
+ *     @OA\Property(
+ *         property="begin",
+ *         type="string",
+ *         format="date-time",
+ *         description="Start time of the collaboration period"
+ *     ),
+ *     @OA\Property(
+ *         property="expiry",
+ *         type="string",
+ *         format="date-time",
+ *         description="Expiry time of the collaborator relationship"
+ *     ),
+ *     @OA\Property(
+ *         property="active",
+ *         type="boolean",
+ *         description="Indicates whether the collaborator relationship is currently active"
+ *     )
+ * )
+ */
 class Collaborator extends Model
 {
     /**
      * The table associated with the model.
+     *
+     * @var string
      */
     protected $table = 'collaborator';
 
     /**
      * The primary key for the table.
+     *
+     * @var string
      */
     protected $primaryKey = 'id';
 
     /**
      * Indicates if the primary key is auto-incrementing.
+     *
+     * @var bool
      */
-    public $incrementing = true; // 'id' is auto-incrementing per your schema
+    public $incrementing = true;
 
     /**
-     * Indicates if the model should be timestamped using created_at/updated_at columns.
-     * collaborator has a 'created' datetime, so we set this to false to avoid confusion.
+     * Disables Laravel's default timestamp columns; this table uses a 'created' column.
+     *
+     * @var bool
      */
     public $timestamps = false;
 
     /**
      * The attributes that can be mass assigned.
+     *
+     * @var array
      */
     protected $fillable = [
         'username',
@@ -41,21 +100,25 @@ class Collaborator extends Model
 
     /**
      * The attributes that should be cast to native types.
+     *
+     * @var array
      */
     protected $casts = [
-        'created' => 'datetime',
-        'begin' => 'datetime',
-        'expiry' => 'datetime',
-        'active' => 'boolean',
+        'created'  => 'datetime',
+        'begin'    => 'datetime',
+        'expiry'   => 'datetime',
+        'active'   => 'boolean',
     ];
 
     /************************************************
      *                   RELATIONSHIPS
      ************************************************/
-    
+
     /**
+     * The user who owns or created the collaborator relationship.
      * collaborator.username -> users.username
-     * This is the user who owns or created the collaborator relationship.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function user()
     {
@@ -63,8 +126,10 @@ class Collaborator extends Model
     }
 
     /**
+     * The collaborator assigned to the user.
      * collaborator.collaborator -> users.username
-     * This is the "other" user assigned as collaborator.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function collaboratorUser()
     {
@@ -76,8 +141,10 @@ class Collaborator extends Model
      ************************************************/
 
     /**
-     * Example scope to find only currently active collaborators.
-     * 'active' is a boolean set to 1 or 0.
+     * Scope to retrieve only active collaborator relationships.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeActive($query)
     {
@@ -85,7 +152,7 @@ class Collaborator extends Model
     }
 
     /**
-     * Mark this collaborator relationship as inactive (soft approach).
+     * Mark this collaborator relationship as inactive.
      */
     public function deactivate()
     {

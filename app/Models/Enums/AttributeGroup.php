@@ -4,24 +4,56 @@ namespace App\Models\Enums;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Class AttributeGroup
+ *
+ * Represents a group of attributes in the system.
+ *
+ * @package App\Models\Enums
+ *
+ * @OA\Schema(
+ *     schema="AttributeGroup",
+ *     description="AttributeGroup model",
+ *     @OA\Property(
+ *         property="idAttGroup",
+ *         type="integer",
+ *         description="Unique identifier for the attribute group"
+ *     ),
+ *     @OA\Property(
+ *         property="name",
+ *         type="string",
+ *         description="Name of the attribute group"
+ *     ),
+ *     @OA\Property(
+ *         property="enabled",
+ *         type="boolean",
+ *         description="Indicates whether the attribute group is enabled"
+ *     ),
+ *     @OA\Property(
+ *         property="ordering",
+ *         type="integer",
+ *         description="Ordering position of the attribute group"
+ *     )
+ * )
+ */
 class AttributeGroup extends Model
 {
     /**
-     * The table associated with the model.
+     * The database table used by the model.
      *
      * @var string
      */
     protected $table = 'rangeAttributesGroups';
 
     /**
-     * Indicates if the model should be timestamped.
+     * Indicates whether the model should be timestamped.
      *
      * @var bool
      */
     public $timestamps = false;
 
     /**
-     * The primary key associated with the table.
+     * The primary key for the model.
      *
      * @var string
      */

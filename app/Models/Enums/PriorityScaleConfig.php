@@ -4,6 +4,28 @@ namespace App\Models\Enums;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Class PriorityScaleConfig
+ *
+ * Represents the configuration for priority scales in the system.
+ *
+ * @package App\Models\Enums
+ *
+ * @OA\Schema(
+ *     schema="PriorityScaleConfig",
+ *     description="PriorityScaleConfig model",
+ *     @OA\Property(
+ *         property="idPriorityConfig",
+ *         type="integer",
+ *         description="Unique identifier for the priority scale configuration"
+ *     ),
+ *     @OA\Property(
+ *         property="configJson",
+ *         type="string",
+ *         description="JSON configuration for the priority scale"
+ *     )
+ * )
+ */
 class PriorityScaleConfig extends Model
 {
     /**
@@ -33,6 +55,6 @@ class PriorityScaleConfig extends Model
      * @var array
      */
     protected $fillable = [
-        'configJson'
+        'configJson',
     ];
 }
