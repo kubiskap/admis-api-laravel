@@ -21,7 +21,8 @@ Route::prefix('v1')->group(function () {
         // Projects
         Route::post('projects/search', [ProjectController::class, 'search'])->name('projects.search'); // Search projects with filters
         Route::post('projects/map', [ProjectController::class, 'map'])->name('projects.map'); // Get projects for map with filters
-        Route::get('projects/{id}', [ProjectController::class, 'show'])->where('id', '[0-9]+');; // Get a project details
+        Route::post('projects', [ProjectController::class, 'store'])->name('projects.store'); // Create a new project
+        Route::get('projects/{id}', [ProjectController::class, 'show'])->where('id', '[0-9]+'); // Get a project details
         Route::get('projects/{id}/editors-history', [ProjectController::class, 'editorsHistory']); // Get all versions of a project
         Route::get('projects/{id}/log', [ProjectController::class, 'projectLog']); // Get all versions of a project
         

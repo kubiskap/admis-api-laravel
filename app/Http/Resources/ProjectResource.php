@@ -4,6 +4,209 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @OA\Schema(
+ *     schema="ProjectResource",
+ *     type="object",
+ *     title="Project Resource",
+ *     required={"id", "name", "type", "in_concept"},
+ *     @OA\Property(
+ *         property="id",
+ *         type="integer",
+ *         description="Unique identifier of the project"
+ *     ),
+ *     @OA\Property(
+ *         property="name",
+ *         type="string",
+ *         description="Project name"
+ *     ),
+ *     @OA\Property(
+ *         property="type",
+ *         type="string",
+ *         description="Project type name"
+ *     ),
+ *     @OA\Property(
+ *         property="subtype",
+ *         type="string",
+ *         description="Project subtype name",
+ *         nullable=true
+ *     ),
+ *     @OA\Property(
+ *         property="in_concept",
+ *         type="boolean",
+ *         description="Indicates if the project is in concept"
+ *     ),
+ *     @OA\Property(
+ *         property="phase",
+ *         type="object",
+ *         description="Project phase details",
+ *         nullable=true,
+ *         @OA\Property(property="id", type="integer", description="Phase identifier"),
+ *         @OA\Property(property="name", type="string", description="Phase name"),
+ *         @OA\Property(property="color", type="string", description="Phase color"),
+ *         @OA\Property(property="color_class", type="string", description="Phase color class")
+ *     ),
+ *     @OA\Property(
+ *         property="editor",
+ *         type="object",
+ *         description="Editor details",
+ *         nullable=true,
+ *         @OA\Property(property="username", type="string", description="Editor username"),
+ *         @OA\Property(property="name", type="string", description="Editor name")
+ *     ),
+ *     @OA\Property(
+ *         property="author",
+ *         type="object",
+ *         description="Author details",
+ *         nullable=true,
+ *         @OA\Property(property="username", type="string", description="Author username"),
+ *         @OA\Property(property="name", type="string", description="Author name")
+ *     ),
+ *     @OA\Property(
+ *         property="priority_attributes",
+ *         type="object",
+ *         description="Priority attributes for the project"
+ *     ),
+ *     @OA\Property(
+ *         property="financial_source",
+ *         type="string",
+ *         description="Name of the financial source",
+ *         nullable=true
+ *     ),
+ *     @OA\Property(
+ *         property="financial_source_pd",
+ *         type="string",
+ *         description="Name of the project documentation financial source",
+ *         nullable=true
+ *     ),
+ *     @OA\Property(
+ *         property="areas",
+ *         type="array",
+ *         description="List of area names",
+ *         @OA\Items(type="string")
+ *     ),
+ *     @OA\Property(
+ *         property="communications",
+ *         type="array",
+ *         description="List of communications",
+ *         @OA\Items(ref="#/components/schemas/CommunicationResource")
+ *     ),
+ *     @OA\Property(
+ *         property="contacts",
+ *         type="array",
+ *         description="List of contacts",
+ *         @OA\Items(
+ *             type="object",
+ *             @OA\Property(property="id", type="integer", description="Contact identifier"),
+ *             @OA\Property(property="name", type="string", description="Contact name"),
+ *             @OA\Property(property="phone", type="string", description="Contact phone"),
+ *             @OA\Property(property="email", type="string", description="Contact email"),
+ *             @OA\Property(
+ *                 property="type",
+ *                 type="object",
+ *                 @OA\Property(property="id", type="integer", description="Contact type identifier"),
+ *                 @OA\Property(property="name", type="string", description="Contact type name")
+ *             )
+ *         )
+ *     ),
+ *     @OA\Property(
+ *         property="companies",
+ *         type="array",
+ *         description="List of companies",
+ *         @OA\Items(
+ *             type="object",
+ *             @OA\Property(property="id", type="integer", description="Company identifier"),
+ *             @OA\Property(property="name", type="string", description="Company name"),
+ *             @OA\Property(property="address", type="string", description="Company address"),
+ *             @OA\Property(property="ic", type="string", description="Company IC"),
+ *             @OA\Property(property="dic", type="string", description="Company DIC"),
+ *             @OA\Property(property="www", type="string", description="Company website"),
+ *             @OA\Property(
+ *                 property="type",
+ *                 type="object",
+ *                 @OA\Property(property="id", type="string", description="Company type identifier"),
+ *                 @OA\Property(property="name", type="string", description="Company type name")
+ *             )
+ *         )
+ *     ),
+ *     @OA\Property(
+ *         property="prices",
+ *         type="array",
+ *         description="List of prices",
+ *         @OA\Items(
+ *             type="object",
+ *             @OA\Property(
+ *                 property="type",
+ *                 type="object",
+ *                 @OA\Property(property="id", type="integer", description="Price type identifier"),
+ *                 @OA\Property(property="name", type="string", description="Price type name"),
+ *                 @OA\Property(
+ *                     property="subtype",
+ *                     type="object",
+ *                     @OA\Property(property="id", type="integer", description="Price subtype identifier"),
+ *                     @OA\Property(property="name", type="string", description="Price subtype name")
+ *                 )
+ *             ),
+ *             @OA\Property(property="value", type="number", description="Price value")
+ *         )
+ *     ),
+ *     @OA\Property(
+ *         property="deadlines",
+ *         type="array",
+ *         description="List of deadlines",
+ *         @OA\Items(
+ *             type="object",
+ *             @OA\Property(property="type", type="string", description="Deadline type"),
+ *             @OA\Property(property="date", type="string", format="date", description="Deadline date")
+ *         )
+ *     ),
+ *     @OA\Property(
+ *         property="suspensions",
+ *         type="array",
+ *         description="List of suspensions",
+ *         @OA\Items(
+ *             type="object",
+ *             @OA\Property(property="source", type="string", description="Suspension source"),
+ *             @OA\Property(property="reason", type="string", description="Suspension reason"),
+ *             @OA\Property(property="comment", type="string", description="Suspension comment"),
+ *             @OA\Property(property="start", type="string", format="date-time", description="Suspension start date"),
+ *             @OA\Property(property="end", type="string", format="date-time", description="Suspension end date"),
+ *             @OA\Property(property="author", type="string", description="Author of the suspension")
+ *         )
+ *     ),
+ *     @OA\Property(
+ *         property="tasks",
+ *         type="array",
+ *         description="List of tasks",
+ *         @OA\Items(
+ *             type="object",
+ *             @OA\Property(property="author", type="string", description="Task author"),
+ *             @OA\Property(property="date", type="string", format="date-time", description="Task creation date"),
+ *             @OA\Property(property="deadline", type="string", format="date-time", description="Task deadline"),
+ *             @OA\Property(property="name", type="string", description="Task name"),
+ *             @OA\Property(property="description", type="string", description="Task description"),
+ *             @OA\Property(
+ *                 property="status",
+ *                 type="object",
+ *                 @OA\Property(property="id", type="integer", description="Task status identifier"),
+ *                 @OA\Property(property="name", type="string", description="Task status name"),
+ *                 @OA\Property(property="color", type="string", description="Task status color"),
+ *                 @OA\Property(property="color_class", type="string", description="Task status color class")
+ *             ),
+ *             @OA\Property(
+ *                 property="reactions",
+ *                 type="array",
+ *                 @OA\Items(
+ *                     type="object",
+ *                     @OA\Property(property="author", type="string", description="Reaction author"),
+ *                     @OA\Property(property="date", type="string", format="date-time", description="Reaction date"),
+ *                     @OA\Property(property="content", type="string", description="Reaction content")
+ *                 )
+ *             )
+ *         )
+ *     )
+ * )
+ */
 class ProjectResource extends JsonResource
 {
 

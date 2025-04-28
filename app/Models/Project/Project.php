@@ -287,6 +287,31 @@ class Project extends Model
         return $this->belongsTo(\App\Models\Users\User::class, 'author', 'username');
     }
 
+    /**
+     * Link projects to related projects through projectRelations (M:N pivot).
+     * projectRelations(idProject, idProjectRelation) → projects(idProjectRelation)
+     */
+    public function relatedProjects(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Project::class, // Related model
+            'projectRelations', // Pivot table
+            'idProject', // Foreign key on the pivot table for the current model
+            'idProjectRelation' // Foreign key on the pivot table for the related model
+        )->using(\App\Models\Pivots\ProjectRelation::class) // Specify the custom pivot model
+         ->withPivot(['idRelationType', 'username', 'created']) // Include additional pivot columns
+         ->withTimestamps(); // If timestamps are used
+    }
+
+    /**
+     * A project can have many objects.
+     * objects.idProject -> projects.idProject
+     */
+    public function objects(): HasMany
+    {
+        return $this->hasMany(\App\Models\Objects\ObjectModel::class, 'idProject', 'idProject');
+    }
+
     /************************************************
      *                    METHODS
      ************************************************/
