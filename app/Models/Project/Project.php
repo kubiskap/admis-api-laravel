@@ -3,6 +3,7 @@
 namespace App\Models\Project;
 
 use App\Http\Resources\ProjectResource;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\{
     BelongsTo,
@@ -300,10 +301,10 @@ class Project extends Model
     {
         $version = $this->versions()->create([
             'idPhase' => $this->idPhase,
-            'assignments' => $this->assignments,
             'idProject' => $this->idProject,
             'created' => now(),
             'historyDump' => json_encode(new ProjectResource($this)),
+            'author' => Auth::user()->username,
         ]);            
 
         $this->update(['idLocalProject' => $version->idLocalProject]);

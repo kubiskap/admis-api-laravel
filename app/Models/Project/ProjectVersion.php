@@ -4,6 +4,7 @@ namespace App\Models\Project;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ProjectVersion extends Model
 {
@@ -72,7 +73,7 @@ class ProjectVersion extends Model
      */
     public function actionLogs(): HasMany
     {
-        return $this->hasMany(\App\Models\ActionLog::class, 'idLocalProject', 'idLocalProject');
+        return $this->hasMany(\App\Models\Logs\ActionLog::class, 'idLocalProject', 'idLocalProject');
     }
 
     /**

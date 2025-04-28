@@ -652,10 +652,134 @@ class ProjectController extends Controller
 
     public function store(Request $request)
     {
+
+        $type = $request->query('type');
+
+        // Validate the incoming request
+        $rules = [
+            'name' => 'required|string|max:255',
+            'subject' => 'required|string',
+            'project_type' => 'required|integer|exists:rangeProjectTypes,idProjectType',
+            'project_subtype' => 'required|integer|exists:rangeProjectSubtypes,idProjectSubtype',
+            'editor' => 'required|string|exists:users,username',
+            'areas' => 'required|array',
+            'areas.*' => 'integer|exists:rangeAreas,idArea',
+            'communications' => 'required|array',
+            'communications.*.idCommunication' => 'required|integer|exists:rangeCommunications,idCommunication',
+            'communications.*.stationing_from' => 'required|numeric',
+            'communications.*.stationing_to' => 'required|numeric',
+            'communications.*.gps_n1' => 'required|numeric',
+            'communications.*.gps_n2' => 'required|numeric',
+            'communications.*.gps_e1' => 'required|numeric',
+            'communications.*.gps_e2' => 'required|numeric',
+            'communications.*.geometry' => 'nullable|string',
+            'objects' => 'nullable|array',
+            'objects.*.idObjectType' => 'required_with:objects|integer|exists:rangeObjectTypes,idObjectType',
+            'objects.*.idObject' => 'required_with:objects|integer|exists:rangeObjects,idObject',
+            'prices' => 'required|array',
+            'prices.*.idPriceType' => 'required_with:prices|integer|exists:rangePriceTypes,idPriceType',
+            'prices.*.idPrice' => 'required_with:prices|integer|exists:rangePrices,idPrice',
+            'prices.*.value' => 'required_with:prices|numeric',
+            'fin_source' => 'required|integer|exists:rangeFinancialSources,idFinSource',
+            'relations' => 'nullable|array',
+            'relations.*.idRelationType' => 'required_with:relations|integer|exists:rangeRelationTypes,idRelationType',
+            'relations.*.idProjectRelation' => 'required_with:relations|integer|exists:projects,idProject',
+        ];
+
+        // Add rules for project-specific fields
+        if ($type === 'namet' || $type === 'stavba' ) {
+            $rules['fin_source_pd'] = 'required|integer|exists:rangeFinancialSources,idFinSource';
+        }
+        elseif ($type === 'udrzba') {
+            $rules['fin_source_pd'] = 'nullable|integer|exists:rangeFinancialSources,idFinSource';
+        }
+        else {
+            return response()->json(['error' => 'Invalid project type'], 400);
+        }
+
+        //Validate the request
+        $validatedData = $request->validate($rules);
+
+        // Create the project
+        $project = Project::create([
+            'idProjectType' => $validatedData['project_type'],
+            'idProjectSubtype' => $validatedData['project_subtype'],
+            'technologicalProjectType' => match ($type) {
+                'namet' => 'topic',
+                'stavba' => 'normal',
+                'udrzba' => 'lite',
+            },
+            'created' => now(),
+            'name' => $validatedData['name'],
+            'subject' => $validatedData['subject'],
+            'editor' => $validatedData['editor'],
+            'author' => Auth::user()->username,
+            'idFinSource' => $validatedData['fin_source'],
+            'idFinSourcePD' => $validatedData['fin_source_pd'] ?? null,
+            'idPhase' => 1,
+            'idLocalProject' => 0,
+            'inConcept' => false,
+        ]);
+
+        // Versionate the project
+        $project->createVersion();
+
+        // Attach areas to the project
+        $project->areas()->sync($validatedData['areas']);
+
+        // Attach communications to the project
+        foreach ($validatedData['communications'] as $communication) {
+            $project->communications()->attach($communication['idCommunication'], [
+                'stationingFrom' => $communication['stationing_from'],
+                'stationingTo' => $communication['stationing_to'],
+                'gpsN1' => $communication['gps_n1'],
+                'gpsN2' => $communication['gps_n2'],
+                'gpsE1' => $communication['gps_e1'],
+                'gpsE2' => $communication['gps_e2'],
+                'geometryWgs' => $communication['geometry'] ?? null,
+            ]);
+        }
+
+        foreach ($validatedData['prices'] as $price) {
+            $project->prices()->attach($price['idPrice'], [
+                'idPriceType' => $price['idPriceType'],
+                'value' => $price['value'],
+            ]);
+        }
+
+        
+
+        // Insert into project relations
+        if (!empty($validatedData['relations'])) {
+            foreach ($validatedData['relations'] as $relation) {
+                \App\Models\Project\ProjectRelation::create([
+                    'username' => Auth::user()->username,
+                    'idProject' => $project->idProject,
+                    'idRelationType' => $relation['idRelationType'],
+                    'idProjectRelation' => $relation['idProjectRelation'],
+                    'created' => now(),
+                ]);
+            }
+        }
+
+        // Log the action in ActionLog
+        ActionLog::create([
+            'idActionType' => 1, // 1 is the action type for "Create Project"
+            'idLocalProject' => $project->idLocalProject,
+            'username' => Auth::user()->username, // Log the current user's username
+            'created' => now(), // Log the timestamp
+        ]);
+
+        // Return the created project as a resource
+        return new ProjectResource($project);
+    }
+
+    public function update(Request $request, $id)
+    {
         // Validate the incoming request
         $validatedData = $request->validate([
-            'name' => 'required|string|max:255',
-            'idProjectType' => 'required|integer|exists:rangeProjectTypes,idProjectType',
+            'name' => 'sometimes|string|max:255',
+            'idProjectType' => 'sometimes|integer|exists:rangeProjectTypes,idProjectType',
             'idProjectSubtype' => 'nullable|integer|exists:rangeProjectSubtypes,idProjectSubtype',
             'idFinSource' => 'nullable|integer|exists:rangeFinancialSources,idFinSource',
             'idPhase' => 'nullable|integer|exists:rangePhases,idPhase',
@@ -664,22 +788,24 @@ class ProjectController extends Controller
             // Add other fields as necessary
         ]);
 
-        // Create the project
-        $project = Project::create(array_merge($validatedData, [
-            'author' => Auth::user()->username, // Set the author as the current user
-            'editor' => Auth::user()->username, // Set the editor as the current user
-            'created' => now(), // Set the creation timestamp
+        // Find the project
+        $project = Project::findOrFail($id);
+
+        // Update the project fields
+        $project->update(array_merge($validatedData, [
+            'editor' => Auth::user()->username, // Update the editor to the current user
         ]));
 
-        // Log the action in ActionLog
-        ActionLog::create([
-            'idActionType' => 1, // Assuming 1 is the action type for "Create Project"
-            'idLocalProject' => $project->idLocalProject, // Assuming idLocalProject is the local project ID
-            'username' => Auth::user()->username, // Log the current user's username
-            'created' => now(), // Log the timestamp
-        ]);
+        // Create a new version of the project
+        $project->createVersion();
 
-        // Return the created project as a resource
+        // Log the action in ActionLog
+        ActionLog::logAction(
+            2, // 2 is the action type for "Edit Project"
+            $project->idLocalProject // Use the updated idLocalProject from the project
+        );
+
+        // Return the updated project as a resource
         return new ProjectResource($project);
     }
 }
