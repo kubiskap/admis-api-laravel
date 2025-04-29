@@ -10,6 +10,8 @@ use App\Http\Resources\ProjectResource;
 use App\Http\Resources\ActionLogResource;
 use App\Http\Resources\CommunicationGeometryResource;
 
+use App\Rules\WktLineString;
+
 use App\Models\Logs\ActionLog;
 use App\Models\Project\Project;
 use App\Models\Pivots\ProjectCommunication;
@@ -382,7 +384,6 @@ class ProjectController extends Controller
      *                     type="object",
      *                     required={"type_id","id","name"},
      *                     @OA\Property(property="type_id", type="integer", description="ID of object type"),
-     *                     @OA\Property(property="id", type="integer", description="ID of object"),
      *                     @OA\Property(property="name", type="string")
      *                 )
      *             ),
@@ -391,9 +392,8 @@ class ProjectController extends Controller
      *                 type="array",
      *                 @OA\Items(
      *                     type="object",
-     *                     required={"type_id","id","value"},
+     *                     required={"type_id","value"},
      *                     @OA\Property(property="type_id", type="integer", description="ID of price type"),
-     *                     @OA\Property(property="id", type="integer", description="ID of price"),
      *                     @OA\Property(property="value", type="number")
      *                 )
      *             ),
@@ -444,14 +444,12 @@ class ProjectController extends Controller
             'communications.*.gps_n2' => 'required|numeric',
             'communications.*.gps_e1' => 'required|numeric',
             'communications.*.gps_e2' => 'required|numeric',
-            'communications.*.geometry' => 'nullable|string',
+            'communications.*.geometry' => ['nullable', 'string', new WktLineString],
             'objects' => 'nullable|array',
             'objects.*.type_id' => 'required_with:objects|integer|exists:rangeObjectTypes,idObjectType',
-            'objects.*.id' => 'required_with:objects|integer|exists:rangeObjects,idObject',
             'objects.*.name' => 'required_with:objects|string',
             'prices' => 'required|array',
             'prices.*.type_id' => 'required_with:prices|integer|exists:rangePriceTypes,idPriceType',
-            'prices.*.id' => 'required_with:prices|integer|exists:rangePrices,idPrice',
             'prices.*.value' => 'required_with:prices|numeric',
             'fin_source' => 'required|integer|exists:rangeFinancialSources,idFinSource',
             'relations' => 'nullable|array',
@@ -490,6 +488,7 @@ class ProjectController extends Controller
         ]);
 
         $project->createVersion();
+
         $project->areas()->sync($validatedData['areas']);
 
         foreach ($validatedData['communications'] as $communication) {
@@ -500,7 +499,7 @@ class ProjectController extends Controller
                 'gpsN2' => $communication['gps_n2'],
                 'gpsE1' => $communication['gps_e1'],
                 'gpsE2' => $communication['gps_e2'],
-                'geometryWgs' => $communication['geometry'] ?? null,
+                'geometryWgs' => LineString::fromWkt($communication['geometry']) ?? null,
             ]);
         }
 
@@ -515,15 +514,15 @@ class ProjectController extends Controller
         }
 
         foreach ($validatedData['prices'] as $price) {
-            $project->prices()->attach($price['id'], [
-                'idPriceType' => $price['type_id'],
+            $project->prices()->create([
+                'idPriceType' => $price['type_id'], // Foreign key for PriceType
                 'value' => $price['value'],
             ]);
         }
 
         if (!empty($validatedData['objects'])) {
             foreach ($validatedData['objects'] as $object) {
-                $project->objects()->attach($object['id'], [
+                $project->objects()->create([
                     'idObjectType' => $object['type_id'],
                     'name' => $object['name'],
                 ]);
@@ -535,6 +534,24 @@ class ProjectController extends Controller
             'idLocalProject' => $project->idLocalProject,
             'username' => Auth::user()->username,
             'created' => now(),
+        ]);
+
+        $project->load([
+            'projectType',
+            'projectSubtype',
+            'financialSource',
+            'financialSourcePD',
+            'phase',
+            'editorUser',
+            'authorUser',
+            'areas',
+            'prices',
+            'deadlines',
+            'communications',
+            'suspensions',
+            'tasks',
+            'contacts',
+            'companies',
         ]);
 
         return new ProjectResource($project);
@@ -596,10 +613,12 @@ class ProjectController extends Controller
 
         $project->createVersion();
 
-        ActionLog::logAction(
-            2, // Action type: Edit Project
-            $project->idLocalProject
-        );
+        ActionLog::create([
+            'idActionType' => 2,
+            'idLocalProject' => $project->idLocalProject,
+            'username' => Auth::user()->username,
+            'created' => now(),
+        ]);
 
         return new ProjectResource($project);
     }
