@@ -7,6 +7,13 @@ use App\Http\Controllers\v1\EnumViewController;
 use App\Http\Controllers\v1\ExternalApiViewController;
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+
+RateLimiter::for('map', function (Request $request) {
+    return Limit::perMinute(500)->by($request->ip());
+});
 
 // API v1 routes
 Route::prefix('v1')->group(function () {
@@ -20,7 +27,7 @@ Route::prefix('v1')->group(function () {
 
         // Projects
         Route::post('projects/search', [ProjectController::class, 'search'])->name('projects.search'); // Search projects with filters
-        Route::post('projects/map', [ProjectController::class, 'map'])->name('projects.map'); // Get projects for map with filters
+        Route::post('projects/map', [ProjectController::class, 'map'])->name('projects.map')->middleware('throttle:map');; // Get projects for map with filters
         Route::post('projects', [ProjectController::class, 'store'])->name('projects.store'); // Create a new project
         Route::get('projects/{id}', [ProjectController::class, 'show'])->where('id', '[0-9]+'); // Get a project details
         Route::get('projects/{id}/editors-history', [ProjectController::class, 'editorsHistory']); // Get all versions of a project

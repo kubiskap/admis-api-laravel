@@ -5,12 +5,17 @@ namespace App\Http\Controllers\v1;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 
 use App\Http\Resources\ProjectResource;
 use App\Http\Resources\ActionLogResource;
 use App\Http\Resources\CommunicationGeometryResource;
 
 use App\Rules\WktLineString;
+
+use App\Support\MapTolerance;
+use App\Services\LineSimplifierService;
 
 use App\Models\Logs\ActionLog;
 use App\Models\Project\Project;
@@ -202,42 +207,74 @@ class ProjectController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
-    public function map(Request $request)
+    public function map(Request $request, LineSimplifierService $simplifier)
     {
-        $spatialFilters = $request->input('filter.spatial', []);
-        $boundingBox = $spatialFilters['bounding_box'] ?? null;
-        $zoom = $spatialFilters['zoom'] ?? null;
+        /* ------------------------------------------------------------------
+         * 1.  Read spatial filter
+         * -----------------------------------------------------------------*/
+        $spatial  = $request->input('filter.spatial', []);
+        $bbox     = $spatial['bounding_box'] ?? null;          // [minLng, minLat, maxLng, maxLat]
+        $zoom     = (int) ($spatial['zoom'] ?? 13);
+        $tol      = MapTolerance::forZoom($zoom);
     
+        /* ------------------------------------------------------------------
+         * 2.  Base query (only columns we really need)
+         * -----------------------------------------------------------------*/
         $query = ProjectCommunication::query()
-            ->whereHas('project', function ($q) {
-                $q->whereNull('deletedDate');
-            })
-            ->with(['project.phase'])
-            ->select('idProject', 'idCommunication', 'gpsN1', 'gpsN2', 'gpsE1', 'gpsE2');
-    
-        if ($zoom >= 11) {
-            $query->addSelect('geometryWgs');
-        }
-    
-        if (is_array($boundingBox) && count($boundingBox) === 4) {
-            [$minLng, $minLat, $maxLng, $maxLat] = $boundingBox;
-    
-            $polygon = new Polygon([
-                new LineString([
-                    new Point($minLat, $minLng),
-                    new Point($minLat, $maxLng),
-                    new Point($maxLat, $maxLng),
-                    new Point($maxLat, $minLng),
-                    new Point($minLat, $minLng)
-                ])
+            ->whereHas('project', fn ($q) => $q->whereNull('deletedDate'))
+            ->with('project.phase')
+            ->select([
+                'idProject',
+                'idCommunication',
+                'gpsN1', 'gpsN2', 'gpsE1', 'gpsE2',
+                'geometryWgs',                              // full geometry
             ]);
     
-            $query->whereNotNull('geometryWgs')
-                  ->whereIntersects('geometryWgs', $polygon);
+        /* ------------------------------------------------------------------
+         * 3.  Bounding-box spatial filter (index-friendly)
+         * -----------------------------------------------------------------*/
+        if (is_array($bbox) && count($bbox) === 4) {
+            [$minLng, $minLat, $maxLng, $maxLat] = $bbox;
+    
+            $polyWkt = "POLYGON(($minLng $minLat, $maxLng $minLat, "
+                     . "$maxLng $maxLat, $minLng $maxLat, $minLng $minLat))";
+    
+            // 1st stage – R-Tree friendly
+            $query->whereRaw(
+                'MBRIntersects(geometryWgs, ST_GeomFromText(?,0))',
+                [$polyWkt]
+            )
+            // 2nd stage – exact test (still SRID 0)
+            ->whereRaw(
+                'ST_Intersects(geometryWgs, ST_GeomFromText(?,0))',
+                [$polyWkt]
+            );
         }
     
+        /* ------------------------------------------------------------------
+         * 4.  Apply the reusable filters you already have
+         * -----------------------------------------------------------------*/
         $query = $this->applyFilters($request, $query);
-        $communications = $query->get();
+    
+        /* ------------------------------------------------------------------
+         * 5.  Fetch and simplify in PHP (cached 10 s)
+         * -----------------------------------------------------------------*/
+        $communications = $query->get()->map(function ($comm) use ($simplifier, $tol) {
+            if ($comm->geometryWgs) {
+                // geometryWgs is a LineString object provided by Yadaev’s cast
+                $wkt = $comm->geometryWgs->toWkt();
+    
+                $cacheKey = "simpl:{$comm->idCommunication}:{$tol}";
+                $simplifiedWkt = Cache::remember($cacheKey, 10, function () use ($simplifier, $wkt, $tol) {
+                    return $simplifier->simplifyToWkt($wkt, $tol) ?? $wkt;
+                });
+    
+                // Re-hydrate back to a LineString so resources/casts work the same
+                $comm->geometryWgs = LineString::fromWkt($simplifiedWkt);
+            }
+    
+            return $comm;
+        });
     
         return CommunicationGeometryResource::collection($communications);
     }
@@ -428,14 +465,17 @@ class ProjectController extends Controller
     {
         $type = $request->query('type');
 
+        // Define base validation rules for all project types
         $rules = [
             'name' => 'required|string|max:255',
             'subject' => 'required|string',
             'project_type' => 'required|integer|exists:rangeProjectTypes,idProjectType',
             'project_subtype' => 'required|integer|exists:rangeProjectSubtypes,idProjectSubtype',
             'editor' => 'required|string|exists:users,username',
+            
             'areas' => 'required|array',
             'areas.*' => 'integer|exists:rangeAreas,idArea',
+            
             'communications' => 'required|array',
             'communications.*.id' => 'required|integer|exists:rangeCommunications,idCommunication',
             'communications.*.stationing_from' => 'required|numeric',
@@ -445,24 +485,43 @@ class ProjectController extends Controller
             'communications.*.gps_e1' => 'required|numeric',
             'communications.*.gps_e2' => 'required|numeric',
             'communications.*.geometry' => ['nullable', 'string', new WktLineString],
+            
             'objects' => 'nullable|array',
             'objects.*.type_id' => 'required_with:objects|integer|exists:rangeObjectTypes,idObjectType',
             'objects.*.name' => 'required_with:objects|string',
+            
             'prices' => 'required|array',
             'prices.*.type_id' => 'required_with:prices|integer|exists:rangePriceTypes,idPriceType',
             'prices.*.value' => 'required_with:prices|numeric',
+            
             'fin_source' => 'required|integer|exists:rangeFinancialSources,idFinSource',
+            'fin_source_pd' => 'required|integer|exists:rangeFinancialSources,idFinSource',
+            
             'relations' => 'nullable|array',
             'relations.*.type_id' => 'required_with:relations|integer|exists:rangeRelationTypes,idRelationType',
             'relations.*.id' => 'required_with:relations|integer|exists:projects,idProject',
         ];
 
-        if ($type === 'namet' || $type === 'stavba') {
-            $rules['fin_source_pd'] = 'required|integer|exists:rangeFinancialSources,idFinSource';
-        } elseif ($type === 'udrzba') {
-            $rules['fin_source_pd'] = 'nullable|integer|exists:rangeFinancialSources,idFinSource';
-        } else {
-            return response()->json(['error' => 'Invalid project type'], 400);
+        // Set default phase ID
+        $idPhase = 5;
+
+        // Apply project type specific rules and set phase ID
+        switch ($type) {
+            case 'namet': // Design project
+                $idPhase = 6;
+                break;
+                
+            case 'stavba': // Construction project
+                // Default rules apply
+                break;
+                
+            case 'udrzba': // Maintenance project
+                // Make project documentation financial source optional
+                $rules['fin_source_pd'] = 'nullable|integer|exists:rangeFinancialSources,idFinSource';
+                break;
+                
+            default:
+                return response()->json(['error' => 'Invalid project type'], 400);
         }
 
         $validatedData = $request->validate($rules);
@@ -482,7 +541,7 @@ class ProjectController extends Controller
             'author' => Auth::user()->username,
             'idFinSource' => $validatedData['fin_source'],
             'idFinSourcePD' => $validatedData['fin_source_pd'] ?? null,
-            'idPhase' => 1,
+            'idPhase' => $idPhase,
             'idLocalProject' => 0,
             'inConcept' => false,
         ]);
