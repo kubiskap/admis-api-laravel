@@ -441,6 +441,160 @@ class EnumViewController extends APIBaseController
     }
 
     /**
+     * Retrieves related resources from a model's relationship.
+     *
+     * @OA\Get(
+     *     path="/api/v1/{type}/{model}/{id}/{relation}",
+     *     tags={"Resources"},
+     *     summary="Get related resources",
+     *     description="Retrieves related resources through a model's relationship. Supports filtering, sorting, and pagination.",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="type",
+     *         in="path",
+     *         required=true,
+     *         description="Resource type: either 'enums' or 'views'",
+     *         @OA\Schema(type="string", enum={"enums", "views"})
+     *     ),
+     *     @OA\Parameter(
+     *         name="model",
+     *         in="path",
+     *         required=true,
+     *         description="Model name (e.g., 'projectType')",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Resource identifier",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="relation",
+     *         in="path",
+     *         required=true,
+     *         description="Relationship name (e.g., 'subtypes')",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="page",
+     *         in="query",
+     *         required=false,
+     *         description="Page number for pagination",
+     *         @OA\Schema(type="integer", default=1)
+     *     ),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         required=false,
+     *         description="Number of items per page",
+     *         @OA\Schema(type="integer", default=10)
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort_field",
+     *         in="query",
+     *         required=false,
+     *         description="Field to sort by",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort_order",
+     *         in="query",
+     *         required=false,
+     *         description="Sort order: 1 for ascending, -1 for descending",
+     *         @OA\Schema(type="integer", default=1)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Related resources retrieved successfully",
+     *         @OA\JsonContent(
+     *             oneOf={
+     *                 @OA\Schema(
+     *                     type="object",
+     *                     @OA\Property(property="data", type="array", @OA\Items(type="object")),
+     *                     @OA\Property(property="meta", type="object", @OA\Property(property="pagination", type="object"))
+     *                 ),
+     *                 @OA\Schema(type="array", @OA\Items(type="object"))
+     *             }
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Model, resource, or relation not found",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Resource not found")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Invalid resource type or relation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Invalid resource type or relation")
+     *         )
+     *     )
+     * )
+     *
+     * @param Request $request
+     * @param string $type
+     * @param string $model
+     * @param mixed $id
+     * @param string $relation
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function relation(Request $request, $type, $model, $id, $relation)
+    {
+        if (!in_array($type, ['enums', 'views'])) {
+            return response()->json(['message' => 'Invalid resource type'], 400);
+        }
+
+        $modelClass = $this->resolveModel($type, $model);
+        if (!$modelClass) {
+            return response()->json(['message' => 'Model not found'], 404);
+        }
+
+        $primaryKey = (new $modelClass)->getKeyName();
+        $resource = $modelClass::where($primaryKey, $id)->first();
+
+        if (!$resource) {
+            return response()->json(['message' => 'Resource not found'], 404);
+        }
+
+        // Check if the relation method exists
+        if (!method_exists($resource, $relation)) {
+            return response()->json(['message' => 'Relation not found'], 404);
+        }
+
+        // Get the relation
+        $relationQuery = $resource->$relation();
+        
+        // Get the base query if it's a relation
+        if (method_exists($relationQuery, 'getQuery')) {
+            $query = $relationQuery->getQuery();
+            
+            // Apply sorting if provided
+            $sortField = $request->query('sort_field', 'name');
+            $sortOrder = (int) $request->query('sort_order', 1) === -1 ? 'desc' : 'asc';
+            $query->orderBy($sortField, $sortOrder);
+
+            // Apply pagination if requested
+            if ($request->has('page') || $request->has('per_page')) {
+                $perPage = (int) $request->query('per_page', 10);
+                $relatedResources = $relationQuery->paginate($perPage);
+                return response()->json($relatedResources);
+            }
+
+            // Get all results
+            $relatedResources = $relationQuery->get();
+            return response()->json($relatedResources);
+        } 
+        
+        // If it's already executed relation (not a query builder)
+        $relatedResources = $resource->$relation;
+        return response()->json($relatedResources);
+    }
+
+    /**
      * Resolves the fully qualified model class name based on type and model parameters.
      *
      * @param string $type The resource type: 'enums' or 'views'.

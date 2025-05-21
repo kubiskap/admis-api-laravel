@@ -39,6 +39,8 @@ Route::prefix('v1')->group(function () {
         // Enums and Views routes - with type constraint
         Route::get('{type}/{model}/{id?}', [EnumViewController::class, 'index'])
             ->where('type', 'enums|views');
+        Route::get('{type}/{model}/{id}/{relation}', [EnumViewController::class, 'relation'])
+            ->where('type', 'enums|views');
         Route::post('{type}/{model}', [EnumViewController::class, 'store'])
             ->where('type', 'enums|views');
         Route::put('{type}/{model}/{id}', [EnumViewController::class, 'update'])
