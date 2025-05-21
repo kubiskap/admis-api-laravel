@@ -301,7 +301,7 @@ class ProjectController extends Controller
      */
     public function editorsHistory(Request $request, $id)
     {
-        $project = \App\Models\Project\Project::findOrFail($id);
+        $project = Project::findOrFail($id);
         $editors = $project->versions()
             ->select('author as editor')
             ->selectRaw('MAX(created) as date')
@@ -507,16 +507,14 @@ class ProjectController extends Controller
 
         // Apply project type specific rules and set phase ID
         switch ($type) {
-            case 'namet': // Design project
+            case 'namet':
                 $idPhase = 6;
                 break;
                 
-            case 'stavba': // Construction project
-                // Default rules apply
+            case 'stavba':
                 break;
                 
-            case 'udrzba': // Maintenance project
-                // Make project documentation financial source optional
+            case 'udrzba':
                 $rules['fin_source_pd'] = 'nullable|integer|exists:rangeFinancialSources,idFinSource';
                 break;
                 
@@ -655,28 +653,110 @@ class ProjectController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $validatedData = $request->validate([
+        $rules = [
             'name' => 'sometimes|string|max:255',
-            'idProjectType' => 'sometimes|integer|exists:rangeProjectTypes,idProjectType',
-            'idProjectSubtype' => 'nullable|integer|exists:rangeProjectSubtypes,idProjectSubtype',
-            'idFinSource' => 'nullable|integer|exists:rangeFinancialSources,idFinSource',
-            'idPhase' => 'nullable|integer|exists:rangePhases,idPhase',
-            'inConcept' => 'nullable|boolean',
-            'priorityAtts' => 'nullable|json',
-        ]);
+            'subject' => 'sometimes|string',
+            'project_type' => 'sometimes|integer|exists:rangeProjectTypes,idProjectType',
+            'project_subtype' => 'sometimes|integer|exists:rangeProjectSubtypes,idProjectSubtype',
+            'editor' => 'sometimes|string|exists:users,username',
+            
+            'areas' => 'sometimes|array',
+            'areas.*' => 'integer|exists:rangeAreas,idArea',
+            
+            'communications' => 'sometimes|array',
+            'communications.*.id' => 'sometimes|integer|exists:rangeCommunications,idCommunication',
+            'communications.*.stationing_from' => 'sometimes|numeric',
+            'communications.*.stationing_to' => 'required|numeric',
+            'communications.*.gps_n1' => 'sometimes|numeric',
+            'communications.*.gps_n2' => 'sometimes|numeric',
+            'communications.*.gps_e1' => 'sometimes|numeric',
+            'communications.*.gps_e2' => 'sometimes|numeric',
+            'communications.*.geometry' => ['sometimes', 'string', new WktLineString],
+            
+            'objects' => 'sometimes|array',
+            'objects.*.type_id' => 'integer|exists:rangeObjectTypes,idObjectType',
+            'objects.*.name' => 'string',
+            
+            'prices' => 'sometimes|array',
+            'prices.*.type_id' => 'integer|exists:rangePriceTypes,idPriceType',
+            'prices.*.value' => 'numeric',
+            
+            'fin_source' => 'required|integer|exists:rangeFinancialSources,idFinSource',
+            'fin_source_pd' => 'required|integer|exists:rangeFinancialSources,idFinSource',
+            
+            'relations' => 'nullable|array',
+            'relations.*.type_id' => 'required_with:relations|integer|exists:rangeRelationTypes,idRelationType',
+            'relations.*.id' => 'required_with:relations|integer|exists:projects,idProject',
+        ];
+
+        $validatedData = $request->validate($rules);
 
         $project = Project::findOrFail($id);
-        $project->update(array_merge($validatedData, [
-            'editor' => Auth::user()->username,
-        ]));
-
         $project->createVersion();
 
+        $project->areas()->sync($validatedData['areas']);
+
+        foreach ($validatedData['communications'] as $communication) {
+            $project->communications()->attach($communication['id'], [
+                'stationingFrom' => $communication['stationing_from'],
+                'stationingTo' => $communication['stationing_to'],
+                'gpsN1' => $communication['gps_n1'],
+                'gpsN2' => $communication['gps_n2'],
+                'gpsE1' => $communication['gps_e1'],
+                'gpsE2' => $communication['gps_e2'],
+                'geometryWgs' => LineString::fromWkt($communication['geometry']) ?? null,
+            ]);
+        }
+
+        if (!empty($validatedData['relations'])) {
+            foreach ($validatedData['relations'] as $relation) {
+                $project->relatedProjects()->attach($relation['id'], [
+                    'idRelationType' => $relation['type_id'],
+                    'username' => Auth::user()->username,
+                    'created' => now(),
+                ]);
+            }
+        }
+
+        foreach ($validatedData['prices'] as $price) {
+            $project->prices()->create([
+                'idPriceType' => $price['type_id'], // Foreign key for PriceType
+                'value' => $price['value'],
+            ]);
+        }
+
+        if (!empty($validatedData['objects'])) {
+            foreach ($validatedData['objects'] as $object) {
+                $project->objects()->create([
+                    'idObjectType' => $object['type_id'],
+                    'name' => $object['name'],
+                ]);
+            }
+        }
+
         ActionLog::create([
-            'idActionType' => 2,
+            'idActionType' => 1,
             'idLocalProject' => $project->idLocalProject,
             'username' => Auth::user()->username,
             'created' => now(),
+        ]);
+
+        $project->load([
+            'projectType',
+            'projectSubtype',
+            'financialSource',
+            'financialSourcePD',
+            'phase',
+            'editorUser',
+            'authorUser',
+            'areas',
+            'prices',
+            'deadlines',
+            'communications',
+            'suspensions',
+            'tasks',
+            'contacts',
+            'companies',
         ]);
 
         return new ProjectResource($project);
