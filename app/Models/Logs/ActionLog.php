@@ -4,6 +4,10 @@ namespace App\Models\Logs;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOneThrough;
+
+use App\Models\Project\Project;
+use App\Models\Project\ProjectVersion;
 
 /**
  * Class ActionLog
@@ -129,6 +133,24 @@ class ActionLog extends Model
     public function projectVersion(): BelongsTo
     {
         return $this->belongsTo(\App\Models\Project\ProjectVersion::class, 'idLocalProject', 'idLocalProject');
+    }
+
+    /**
+     * Get the project associated with the action log through the project version.
+     * ActionLog -> ProjectVersion -> Project
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOneThrough
+     */
+    public function project(): HasOneThrough
+    {
+        return $this->hasOneThrough(
+            Project::class,          // Cílový model (Project)
+            ProjectVersion::class,   // Prostřední model (ProjectVersion)
+            'idLocalProject',        // Cizí klíč na tabulce ProjectVersion (propojuje ActionLog s ProjectVersion)
+            'idProject',             // Cizí klíč na tabulce ProjectVersion (propojuje ProjectVersion s Project)
+            'idLocalProject',        // Lokální klíč na tabulce ActionLog
+            'idProject'              // Lokální klíč na tabulce Project
+        );
     }
 
     /************************************************

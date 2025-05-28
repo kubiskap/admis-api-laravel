@@ -6,6 +6,9 @@ use App\Http\Controllers\v1\APIBaseController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Schema;
+use Spatie\QueryBuilder\QueryBuilder;
+use Spatie\QueryBuilder\AllowedFilter;
+use Illuminate\Database\Eloquent\Relations\Relation;
 
 /**
  * Class EnumViewController
@@ -52,6 +55,22 @@ class EnumViewController extends APIBaseController
      *         @OA\Schema(type="string")
      *     ),
      *     @OA\Parameter(
+     *         name="filter",
+     *         in="query",
+     *         required=false,
+     *         description="Filter results. Usage: `filter[column_name]=value`. Supports partial matching for string columns defined as filterable.",
+     *         style="deepObject",
+     *         explode=true,
+     *         @OA\Schema(type="object", additionalProperties=@OA\Schema(type="string"))
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort",
+     *         in="query",
+     *         required=false,
+     *         description="Sort results. Usage: `sort=column_name` for ascending, `sort=-column_name` for descending. Default sort is by primary key, ascending.",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
      *         name="page",
      *         in="query",
      *         required=false,
@@ -65,34 +84,6 @@ class EnumViewController extends APIBaseController
      *         description="Number of items per page",
      *         @OA\Schema(type="integer", default=10)
      *     ),
-     *     @OA\Parameter(
-     *         name="filter_field",
-     *         in="query",
-     *         required=false,
-     *         description="Field to filter by",
-     *         @OA\Schema(type="string")
-     *     ),
-     *     @OA\Parameter(
-     *         name="filter_value",
-     *         in="query",
-     *         required=false,
-     *         description="Value to use for filtering (partial matching)",
-     *         @OA\Schema(type="string")
-     *     ),
-     *     @OA\Parameter(
-     *         name="sort_field",
-     *         in="query",
-     *         required=false,
-     *         description="Field to sort by; defaults to primary key",
-     *         @OA\Schema(type="string")
-     *     ),
-     *     @OA\Parameter(
-     *         name="sort_order",
-     *         in="query",
-     *         required=false,
-     *         description="Sort order: 1 for ascending, -1 for descending",
-     *         @OA\Schema(type="integer", default=1)
-     *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Resource(s) retrieved successfully",
@@ -100,10 +91,38 @@ class EnumViewController extends APIBaseController
      *             oneOf={
      *                 @OA\Schema(
      *                     type="object",
+     *                     description="Paginated list of resources",
      *                     @OA\Property(property="data", type="array", @OA\Items(type="object")),
-     *                     @OA\Property(property="meta", type="object", @OA\Property(property="pagination", type="object"))
+     *                     @OA\Property(property="links", type="object",
+     *                         @OA\Property(property="first", type="string", format="url", nullable=true),
+     *                         @OA\Property(property="last", type="string", format="url", nullable=true),
+     *                         @OA\Property(property="prev", type="string", format="url", nullable=true),
+     *                         @OA\Property(property="next", type="string", format="url", nullable=true)
+     *                     ),
+     *                     @OA\Property(property="meta", type="object",
+     *                         @OA\Property(property="current_page", type="integer"),
+     *                         @OA\Property(property="from", type="integer", nullable=true),
+     *                         @OA\Property(property="last_page", type="integer"),
+     *                         @OA\Property(property="links", type="array", @OA\Items(type="object",
+     *                              @OA\Property(property="url", type="string", format="url", nullable=true),
+     *                              @OA\Property(property="label", type="string"),
+     *                              @OA\Property(property="active", type="boolean")
+     *                         )),
+     *                         @OA\Property(property="path", type="string", format="url"),
+     *                         @OA\Property(property="per_page", type="integer"),
+     *                         @OA\Property(property="to", type="integer", nullable=true),
+     *                         @OA\Property(property="total", type="integer")
+     *                     )
      *                 ),
-     *                 @OA\Schema(type="object")
+     *                 @OA\Schema(
+     *                     type="array",
+     *                     description="List of resources (if not paginated and no ID provided)",
+     *                     @OA\Items(type="object")
+     *                 ),
+     *                 @OA\Schema(
+     *                     type="object",
+     *                     description="Single resource (if ID is provided)"
+     *                 )
      *             }
      *         )
      *     ),
@@ -140,7 +159,8 @@ class EnumViewController extends APIBaseController
             return response()->json(['message' => 'Model not found'], 404);
         }
 
-        $primaryKey = (new $modelClass)->getKeyName();
+        $instance = new $modelClass();
+        $primaryKey = $instance->getKeyName();
 
         if ($id) {
             $resource = $modelClass::where($primaryKey, $id)->first();
@@ -150,37 +170,32 @@ class EnumViewController extends APIBaseController
             return response()->json($resource);
         }
 
-        $query = $modelClass::query();
+        $allowedFilters = [];
+        $allowedSorts = [];
+        $table = $instance->getTable();
 
-        // Apply filtering if provided.
-        $filterField = $request->query('filter_field');
-        $filterValue = $request->query('filter_value');
-        if ($filterValue) {
-            if ($filterField) {
-                $query->where($filterField, 'like', '%' . $filterValue . '%');
-            } else {
-                $fields = Schema::getColumnListing((new $modelClass)->getTable());
-                $query->where(function ($q) use ($fields, $filterValue) {
-                    foreach ($fields as $field) {
-                        $q->orWhere($field, 'like', '%' . $filterValue . '%');
-                    }
-                });
+        if (Schema::hasTable($table)) {
+            $columns = Schema::getColumnListing($table);
+            foreach ($columns as $column) {
+                // By default, allow partial filtering for all columns.
+                // For more specific filtering (exact, scope, etc.), configure AllowedFilter explicitly.
+                $allowedFilters[] = AllowedFilter::partial($column);
             }
+            $allowedSorts = $columns;
         }
+        
+        $query = QueryBuilder::for($modelClass)
+            ->allowedFilters($allowedFilters)
+            ->allowedSorts($allowedSorts)
+            ->defaultSort($primaryKey);
 
-        // Apply sorting if provided.
-        $sortField = $request->query('sort_field', $primaryKey);
-        $sortOrder = (int) $request->query('sort_order', 1) === -1 ? 'desc' : 'asc';
-        $query->orderBy($sortField, $sortOrder);
-
-        // Apply pagination if requested.
-        if ($request->has('page') || $request->has('per_page')) {
+        if ($request->filled('page') || $request->filled('per_page')) {
             $perPage = (int) $request->query('per_page', 10);
-            $resources = $query->paginate($perPage);
-            return response()->json($resources);
+            $resources = $query->paginate($perPage)->appends($request->query());
+        } else {
+            $resources = $query->get();
         }
 
-        $resources = $query->get();
         return response()->json($resources);
     }
 
@@ -447,7 +462,7 @@ class EnumViewController extends APIBaseController
      *     path="/api/v1/{type}/{model}/{id}/{relation}",
      *     tags={"Resources"},
      *     summary="Get related resources",
-     *     description="Retrieves related resources through a model's relationship. Supports filtering, sorting, and pagination.",
+     *     description="Retrieves related resources through a model's relationship. Supports sorting and pagination.",
      *     security={{"bearerAuth":{}}},
      *     @OA\Parameter(
      *         name="type",
@@ -478,6 +493,13 @@ class EnumViewController extends APIBaseController
      *         @OA\Schema(type="string")
      *     ),
      *     @OA\Parameter(
+     *         name="sort",
+     *         in="query",
+     *         required=false,
+     *         description="Sort results. Usage: `sort=column_name` for ascending, `sort=-column_name` for descending. Default sort is by 'name' or primary key of the related model.",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
      *         name="page",
      *         in="query",
      *         required=false,
@@ -491,20 +513,6 @@ class EnumViewController extends APIBaseController
      *         description="Number of items per page",
      *         @OA\Schema(type="integer", default=10)
      *     ),
-     *     @OA\Parameter(
-     *         name="sort_field",
-     *         in="query",
-     *         required=false,
-     *         description="Field to sort by",
-     *         @OA\Schema(type="string")
-     *     ),
-     *     @OA\Parameter(
-     *         name="sort_order",
-     *         in="query",
-     *         required=false,
-     *         description="Sort order: 1 for ascending, -1 for descending",
-     *         @OA\Schema(type="integer", default=1)
-     *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Related resources retrieved successfully",
@@ -512,10 +520,34 @@ class EnumViewController extends APIBaseController
      *             oneOf={
      *                 @OA\Schema(
      *                     type="object",
+     *                     description="Paginated list of related resources",
      *                     @OA\Property(property="data", type="array", @OA\Items(type="object")),
-     *                     @OA\Property(property="meta", type="object", @OA\Property(property="pagination", type="object"))
+     *                     @OA\Property(property="links", type="object",
+     *                         @OA\Property(property="first", type="string", format="url", nullable=true),
+     *                         @OA\Property(property="last", type="string", format="url", nullable=true),
+     *                         @OA\Property(property="prev", type="string", format="url", nullable=true),
+     *                         @OA\Property(property="next", type="string", format="url", nullable=true)
+     *                     ),
+     *                     @OA\Property(property="meta", type="object",
+     *                         @OA\Property(property="current_page", type="integer"),
+     *                         @OA\Property(property="from", type="integer", nullable=true),
+     *                         @OA\Property(property="last_page", type="integer"),
+     *                         @OA\Property(property="links", type="array", @OA\Items(type="object",
+     *                              @OA\Property(property="url", type="string", format="url", nullable=true),
+     *                              @OA\Property(property="label", type="string"),
+     *                              @OA\Property(property="active", type="boolean")
+     *                         )),
+     *                         @OA\Property(property="path", type="string", format="url"),
+     *                         @OA\Property(property="per_page", type="integer"),
+     *                         @OA\Property(property="to", type="integer", nullable=true),
+     *                         @OA\Property(property="total", type="integer")
+     *                     )
      *                 ),
-     *                 @OA\Schema(type="array", @OA\Items(type="object"))
+     *                 @OA\Schema(
+     *                     type="array",
+     *                     description="List of related resources (if not paginated)",
+     *                     @OA\Items(type="object")
+     *                 )
      *             }
      *         )
      *     ),
@@ -560,37 +592,48 @@ class EnumViewController extends APIBaseController
             return response()->json(['message' => 'Resource not found'], 404);
         }
 
-        // Check if the relation method exists
         if (!method_exists($resource, $relation)) {
             return response()->json(['message' => 'Relation not found'], 404);
         }
 
-        // Get the relation
-        $relationQuery = $resource->$relation();
-        
-        // Get the base query if it's a relation
-        if (method_exists($relationQuery, 'getQuery')) {
-            $query = $relationQuery->getQuery();
-            
-            // Apply sorting if provided
-            $sortField = $request->query('sort_field', 'name');
-            $sortOrder = (int) $request->query('sort_order', 1) === -1 ? 'desc' : 'asc';
-            $query->orderBy($sortField, $sortOrder);
+        $relationInstance = $resource->$relation();
 
-            // Apply pagination if requested
-            if ($request->has('page') || $request->has('per_page')) {
-                $perPage = (int) $request->query('per_page', 10);
-                $relatedResources = $relationQuery->paginate($perPage);
-                return response()->json($relatedResources);
+        if (!($relationInstance instanceof Relation)) {
+            // If it's already a collection (e.g., from an accessor) or array, return it.
+            if ($relationInstance instanceof \Illuminate\Support\Collection || is_array($relationInstance)) {
+                return response()->json($relationInstance);
             }
-
-            // Get all results
-            $relatedResources = $relationQuery->get();
-            return response()->json($relatedResources);
-        } 
+            return response()->json(['message' => 'Invalid relation type for querying'], 400);
+        }
         
-        // If it's already executed relation (not a query builder)
-        $relatedResources = $resource->$relation;
+        $allowedSorts = [];
+        $defaultSortKey = 'id'; // Fallback default sort key
+
+        $relatedModelInstance = $relationInstance->getRelated();
+        $relatedTable = $relatedModelInstance->getTable();
+
+        if (Schema::hasTable($relatedTable)) {
+            $allowedSorts = Schema::getColumnListing($relatedTable);
+            $defaultSortKey = $relatedModelInstance->getKeyName();
+            if (in_array('name', $allowedSorts)) { // Prefer 'name' if it exists and is sortable
+                $defaultSortKey = 'name';
+            }
+        }
+
+        $query = QueryBuilder::for($relationInstance) // Pass the Eloquent Relation object
+            ->allowedSorts($allowedSorts)
+            ->defaultSort($defaultSortKey);
+        
+        // Note: Filtering for relations is not implemented here as it wasn't in the original code.
+        // To add filtering, use ->allowedFilters() similar to the index method.
+
+        if ($request->filled('page') || $request->filled('per_page')) {
+            $perPage = (int) $request->query('per_page', 10);
+            $relatedResources = $query->paginate($perPage)->appends($request->query());
+        } else {
+            $relatedResources = $query->get();
+        }
+
         return response()->json($relatedResources);
     }
 

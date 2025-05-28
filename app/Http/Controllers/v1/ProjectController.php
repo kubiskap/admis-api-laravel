@@ -25,6 +25,9 @@ use MatanYadaev\EloquentSpatial\Objects\Polygon;
 use MatanYadaev\EloquentSpatial\Objects\LineString;
 use MatanYadaev\EloquentSpatial\Objects\Point;
 
+use Spatie\QueryBuilder\QueryBuilder;
+use Spatie\QueryBuilder\AllowedSort;
+
 /**
  * Class ProjectController
  *
@@ -324,8 +327,13 @@ class ProjectController extends Controller
      *     security={{"bearerAuth": {}}},
      *     @OA\Parameter(name="id", in="path", description="Project ID", required=true, @OA\Schema(type="integer")),
      *     @OA\Parameter(name="per_page", in="query", description="Items per page", required=false, @OA\Schema(type="integer", default=15)),
-     *     @OA\Parameter(name="sort_field", in="query", description="Field to sort by", required=false, @OA\Schema(type="string", default="date")),
-     *     @OA\Parameter(name="sort_order", in="query", description="Sort order: 1 for ascending, -1 for descending", required=false, @OA\Schema(type="integer", default=-1)),
+     *     @OA\Parameter(
+     *         name="sort",
+     *         in="query",
+     *         description="Sort results. Usage: `sort=field` for ascending, `sort=-field` for descending. Allowed fields: `date`, `user.username`, `action`, `project.name`. Default: `-date`",
+     *         required=false,
+     *         @OA\Schema(type="string", default="-date")
+     *     ),
      *     @OA\Response(response=200, description="Successful operation", @OA\JsonContent(ref="#/components/schemas/ActionLogResource")),
      *     @OA\Response(response=401, description="Unauthenticated"),
      *     @OA\Response(response=404, description="Project not found")
@@ -333,37 +341,41 @@ class ProjectController extends Controller
      *
      * @param Request $request
      * @param int $id
-     * @return \Illuminate\Http\JsonResponse
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     public function projectLog(Request $request, $id)
     {
-        $project = Project::findOrFail($id);
-        $query = $project->actions();
+        // Nejprve ověříme, zda projekt s daným ID existuje.
+        // Toto je důležité pro kontext a pro vrácení 404, pokud projekt neexistuje.
+        Project::findOrFail($id);
 
-        $sortField = $request->query('sort_field', 'date');
-        $sortOrder = (int) $request->query('sort_order', 1) === -1 ? 'desc' : 'asc';
-        
-        $fieldMap = [
-            'date'            => 'actionsLogs.created',
-            'user.username'   => 'actionsLogs.username',
-            'action'          => 'rangeActionTypes.name',
-            'project.name'    => 'projects.name',
-        ];
-        $dbColumn = $fieldMap[$sortField] ?? 'actionsLogs.created';
-        
-        if ($sortField === 'user.username') {
-            $query->leftJoin('users', 'actionsLogs.username', '=', 'users.username');
-        } elseif ($sortField === 'action') {
-            $query->leftJoin('rangeActionTypes', 'actionsLogs.idActionType', '=', 'rangeActionTypes.idActionType');
-        } elseif ($sortField === 'project.name') {
-            $query->leftJoin('projectVersions', 'actionsLogs.idLocalProject', '=', 'projectVersions.idLocalProject')
-                  ->leftJoin('projects', 'projectVersions.idProject', '=', 'projects.idProject');
-        }
+        // Základní dotaz nyní vychází přímo z modelu ActionLog.
+        // Eager loading relací zůstává důležitý pro ActionLogResource a pro řazení.
+        $query = ActionLog::query()->with([
+            'user',         // Pro ActionLogResource: $this->user->name
+            'actionType',   // Pro ActionLogResource: $this->actionType->name
+            'project.phase' // Pro ActionLogResource: $this->project->name, $this->project->phase->name
+                            // a také pro řazení podle 'project.name'
+        ]);
 
-        $query->orderBy($dbColumn, $sortOrder);
+        // Filtrujeme ActionLog záznamy, které patří k danému projektu.
+        // Využíváme relaci project() definovanou v ActionLog modelu (ActionLog -> ProjectVersion -> Project).
+        $query->whereHas('project', function ($q) use ($id) {
+            $q->where('projects.idProject', $id);
+        });
 
         $perPage = (int) $request->query('per_page', 15);
-        $logs = $query->paginate($perPage);
+
+        $logs = QueryBuilder::for($query)
+            ->allowedSorts([
+                AllowedSort::field('date', 'created'), // Řadí podle sloupce 'created' v tabulce 'actionsLogs'
+                AllowedSort::field('user.username', 'username'), // Řadí podle sloupce 'username' v tabulce 'actionsLogs'
+                                                                // ActionLogResource zobrazuje user->name, ale řadíme podle username na ActionLog
+                AllowedSort::field('action', 'actionType.name'), // Řadí podle 'name' z relace 'actionType'
+                AllowedSort::field('project.name', 'project.name') // Řadí podle 'name' z relace 'project'
+            ])
+            ->defaultSort('-created') // Změněno z '-date' na '-created'
+            ->paginate($perPage);
 
         return ActionLogResource::collection($logs);
     }
