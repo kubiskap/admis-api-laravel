@@ -385,7 +385,7 @@ class Project extends Model
      */
     public function deadlines(): HasMany
     {
-        return $this->hasMany(\App\Models\Project\Deadline::class, 'idProject', 'idProject');
+        return $this->hasMany(\App\Models\Calendar\Deadline::class, 'idProject', 'idProject');
     }
 
     /**

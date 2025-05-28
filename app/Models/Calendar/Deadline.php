@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models\Project;
+namespace App\Models\Calendar;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -83,7 +83,7 @@ class Deadline extends Model
      * @var array
      */
     public $casts = [
-        'value'    => 'date',
+        'value'    => 'datetime:Y-m-d',
         'inserted' => 'date',
     ];
 

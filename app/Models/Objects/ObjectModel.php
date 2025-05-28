@@ -4,6 +4,7 @@ namespace App\Models\Objects;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Class ObjectModel
@@ -91,6 +92,21 @@ class ObjectModel extends Model
     public function project(): BelongsTo
     {
         return $this->belongsTo(\App\Models\Project\Project::class, 'idProject', 'idProject');
+    }
+
+    /**
+     * Get the attributes associated with the object.
+     * objects.idObject -> attributes.idObject
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function attributes(): HasMany
+    {
+        return $this->hasMany(
+            Attribute::class,
+            'idObject',
+            'idObject'
+        );
     }
 
     /**

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\v1\AuthController;
+use App\Http\Controllers\v1\DashboardController;
 use \App\Http\Controllers\v1\ProjectController;
 use App\Http\Controllers\v1\UserController;
 use App\Http\Controllers\v1\EnumViewController;
@@ -33,6 +34,10 @@ Route::prefix('v1')->group(function () {
         Route::get('projects/{id}/editors-history', [ProjectController::class, 'editorsHistory']); // Get all versions of a project
         Route::get('projects/{id}/log', [ProjectController::class, 'projectLog']); // Get all versions of a project
         
+        // Dashboard
+        Route::get('dashboard/statistics', [DashboardController::class, 'getStatistics']);
+        Route::get('dashboard/calendar', [DashboardController::class, 'getCalendar']);
+
         // Users
         Route::apiResource('users', UserController::class); // Full CRUD operations for users
 
