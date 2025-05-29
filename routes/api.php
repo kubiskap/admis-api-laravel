@@ -6,6 +6,7 @@ use \App\Http\Controllers\v1\ProjectController;
 use App\Http\Controllers\v1\UserController;
 use App\Http\Controllers\v1\EnumViewController;
 use App\Http\Controllers\v1\ExternalApiViewController;
+use \App\Http\Controllers\v1\LogController;
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\RateLimiter;
@@ -40,6 +41,10 @@ Route::prefix('v1')->group(function () {
 
         // Users
         Route::apiResource('users', UserController::class); // Full CRUD operations for users
+
+        // Logs
+        Route::get('logs', [LogController::class, 'index'])
+            ->name('logs.index'); // Get all system action logs
 
         // Enums and Views routes - with type constraint
         Route::get('{type}/{model}/{id?}', [EnumViewController::class, 'index'])
