@@ -25,73 +25,65 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 class EnumViewController extends APIBaseController
 {
     /**
-     * Retrieves one or more resources from the specified model.
-     *
      * @OA\Get(
-     *     path="/api/v1/{type}/{model}/{id}",
+     *     path="/api/v1/{type}/{model}",
      *     tags={"Resources"},
-     *     summary="Get resource(s)",
-     *     description="Retrieves a single resource by ID or a collection of resources from the specified model type. Supports filtering, sorting, and pagination.",
+     *     summary="List resources",
+     *     description="Retrieves a list of resources for the specified model type (enum or view). Supports pagination and sorting.",
      *     security={{"bearerAuth":{}}},
      *     @OA\Parameter(
      *         name="type",
      *         in="path",
      *         required=true,
-     *         description="Resource type: either 'enums' or 'views'",
+     *         description="Resource type: 'enums' or 'views'",
      *         @OA\Schema(type="string", enum={"enums", "views"})
      *     ),
      *     @OA\Parameter(
      *         name="model",
      *         in="path",
      *         required=true,
-     *         description="Model name (e.g., 'roleType', 'projectDetails')",
+     *         description="Model name (e.g., 'roleType', 'projectStatus')",
      *         @OA\Schema(type="string")
      *     ),
      *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         required=false,
-     *         description="Resource identifier; if omitted, returns all resources",
-     *         @OA\Schema(type="string")
-     *     ),
-     *     @OA\Parameter(
-     *         name="filter",
+     *         name="filter[{column_name}]",
      *         in="query",
      *         required=false,
-     *         description="Filter results. Usage: `filter[column_name]=value`. Supports partial matching for string columns defined as filterable.",
-     *         style="deepObject",
-     *         explode=true,
-     *         @OA\Schema(type="object", additionalProperties=@OA\Schema(type="string"))
+     *         description="Filter results by column values. Example: filter[name]=example",
+     *         @OA\Schema(type="string")
      *     ),
      *     @OA\Parameter(
      *         name="sort",
      *         in="query",
      *         required=false,
-     *         description="Sort results. Usage: `sort=column_name` for ascending, `sort=-column_name` for descending. Default sort is by primary key, ascending.",
+     *         description="Sort results. Usage: `sort=column_name` for ascending, `sort=-column_name` for descending. Default sort is by primary key.",
      *         @OA\Schema(type="string")
      *     ),
      *     @OA\Parameter(
      *         name="page",
      *         in="query",
      *         required=false,
-     *         description="Page number for pagination",
+     *         description="Page number for pagination.",
      *         @OA\Schema(type="integer", default=1)
      *     ),
      *     @OA\Parameter(
      *         name="per_page",
      *         in="query",
      *         required=false,
-     *         description="Number of items per page",
+     *         description="Number of items per page.",
      *         @OA\Schema(type="integer", default=10)
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Resource(s) retrieved successfully",
+     *         description="A list of resources",
      *         @OA\JsonContent(
      *             oneOf={
      *                 @OA\Schema(
+     *                     type="array",
+     *                     @OA\Items(type="object")
+     *                 ),
+     *                 @OA\Schema(
      *                     type="object",
-     *                     description="Paginated list of resources",
      *                     @OA\Property(property="data", type="array", @OA\Items(type="object")),
      *                     @OA\Property(property="links", type="object",
      *                         @OA\Property(property="first", type="string", format="url", nullable=true),
@@ -103,34 +95,13 @@ class EnumViewController extends APIBaseController
      *                         @OA\Property(property="current_page", type="integer"),
      *                         @OA\Property(property="from", type="integer", nullable=true),
      *                         @OA\Property(property="last_page", type="integer"),
-     *                         @OA\Property(property="links", type="array", @OA\Items(type="object",
-     *                              @OA\Property(property="url", type="string", format="url", nullable=true),
-     *                              @OA\Property(property="label", type="string"),
-     *                              @OA\Property(property="active", type="boolean")
-     *                         )),
      *                         @OA\Property(property="path", type="string", format="url"),
      *                         @OA\Property(property="per_page", type="integer"),
      *                         @OA\Property(property="to", type="integer", nullable=true),
      *                         @OA\Property(property="total", type="integer")
      *                     )
-     *                 ),
-     *                 @OA\Schema(
-     *                     type="array",
-     *                     description="List of resources (if not paginated and no ID provided)",
-     *                     @OA\Items(type="object")
-     *                 ),
-     *                 @OA\Schema(
-     *                     type="object",
-     *                     description="Single resource (if ID is provided)"
      *                 )
      *             }
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Model or resource not found",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string", example="Resource not found")
      *         )
      *     ),
      *     @OA\Response(
@@ -139,14 +110,62 @@ class EnumViewController extends APIBaseController
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string", example="Invalid resource type")
      *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Model not found",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Model not found")
+     *         )
      *     )
      * )
-     *
-     * @param Request $request
-     * @param string $type
-     * @param string $model
-     * @param mixed $id
-     * @return \Illuminate\Http\JsonResponse
+     * @OA\Get(
+     *     path="/api/v1/{type}/{model}/{id}",
+     *     tags={"Resources"},
+     *     summary="Get a specific resource",
+     *     description="Retrieves a single resource by its ID for the specified model type (enum or view).",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="type",
+     *         in="path",
+     *         required=true,
+     *         description="Resource type: 'enums' or 'views'",
+     *         @OA\Schema(type="string", enum={"enums", "views"})
+     *     ),
+     *     @OA\Parameter(
+     *         name="model",
+     *         in="path",
+     *         required=true,
+     *         description="Model name (e.g., 'roleType', 'projectStatus')",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Resource identifier",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="A single resource",
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Invalid resource type",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Invalid resource type")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Model or resource not found",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Resource not found")
+     *         )
+     *     )
+     * )
      */
     public function index(Request $request, $type, $model, $id = null)
     {
@@ -519,6 +538,7 @@ class EnumViewController extends APIBaseController
      *         @OA\JsonContent(
      *             oneOf={
      *                 @OA\Schema(
+     *                     schema="PaginatedRelatedResources",
      *                     type="object",
      *                     description="Paginated list of related resources",
      *                     @OA\Property(property="data", type="array", @OA\Items(type="object")),
@@ -544,6 +564,7 @@ class EnumViewController extends APIBaseController
      *                     )
      *                 ),
      *                 @OA\Schema(
+     *                     schema="ListOfRelatedResources",
      *                     type="array",
      *                     description="List of related resources (if not paginated)",
      *                     @OA\Items(type="object")

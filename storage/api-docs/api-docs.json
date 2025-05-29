@@ -17,8 +17,8 @@
                 "tags": [
                     "Authentication"
                 ],
-                "summary": "Authenticate user & obtain JWT token",
-                "description": "Authenticates a user using their credentials and returns a JWT token. See the User model for details on user fields.",
+                "summary": "Login to get JWT token",
+                "description": "Authenticates a user and returns a JWT token",
                 "operationId": "bb41d9524d1781b0e0f057673979e5c7",
                 "requestBody": {
                     "required": true,
@@ -31,12 +31,12 @@
                                 ],
                                 "properties": {
                                     "username": {
-                                        "description": "User's unique username",
-                                        "type": "string"
+                                        "type": "string",
+                                        "format": "username"
                                     },
                                     "password": {
-                                        "description": "The user's password",
-                                        "type": "string"
+                                        "type": "string",
+                                        "format": "password"
                                     }
                                 },
                                 "type": "object"
@@ -46,22 +46,19 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "User successfully authenticated",
+                        "description": "Successful login",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
                                         "access_token": {
-                                            "description": "JWT access token",
                                             "type": "string"
                                         },
                                         "token_type": {
-                                            "description": "Token type",
                                             "type": "string",
                                             "example": "bearer"
                                         },
                                         "expires_in": {
-                                            "description": "Time in seconds until the token expires",
                                             "type": "integer"
                                         }
                                     },
@@ -71,20 +68,7 @@
                         }
                     },
                     "401": {
-                        "description": "Invalid credentials",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "example": "Unauthorized"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
+                        "description": "Invalid credentials"
                     }
                 }
             }
@@ -94,12 +78,12 @@
                 "tags": [
                     "Authentication"
                 ],
-                "summary": "Retrieve details of the authenticated user",
-                "description": "Returns the details of the authenticated user. Data is based on the User model. Refer to App\\Models\\Users\\User for field definitions.",
+                "summary": "Retrieve authenticated user details",
+                "description": "Fetches the details of the currently authenticated user based on the provided JWT token.",
                 "operationId": "7029e3e8d2d6c300d23adff07cfb497e",
                 "responses": {
                     "200": {
-                        "description": "Authenticated user retrieved successfully",
+                        "description": "User information retrieved successfully.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -109,36 +93,36 @@
                                             "type": "string"
                                         },
                                         "name": {
-                                            "description": "Full name of the user",
+                                            "description": "User's full name",
                                             "type": "string"
                                         },
                                         "email": {
-                                            "description": "Email address",
+                                            "description": "User's email address",
                                             "type": "string",
                                             "format": "email"
                                         },
                                         "idOu": {
-                                            "description": "Organizational unit ID",
-                                            "type": "integer"
+                                            "description": "User's organization unit identifier",
+                                            "type": "string"
                                         },
                                         "idRoleType": {
-                                            "description": "Role type identifier",
-                                            "type": "integer"
+                                            "description": "User's role type identifier",
+                                            "type": "string"
                                         },
                                         "idAuthorityType": {
-                                            "description": "Authority type identifier",
-                                            "type": "integer"
+                                            "description": "User's authority type identifier",
+                                            "type": "string"
                                         },
                                         "accessDenied": {
-                                            "description": "Access status",
+                                            "description": "Whether user access is denied",
                                             "type": "boolean"
                                         },
                                         "idReportConfig": {
-                                            "description": "Report configuration identifier",
-                                            "type": "integer"
+                                            "description": "User's report configuration identifier",
+                                            "type": "string"
                                         },
                                         "editorReport": {
-                                            "description": "Flag for report editor rights",
+                                            "description": "Whether user can edit reports",
                                             "type": "boolean"
                                         }
                                     },
@@ -148,7 +132,7 @@
                         }
                     },
                     "401": {
-                        "description": "Unauthenticated - token is missing or invalid",
+                        "description": "Unauthenticated. Token is missing or invalid.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -176,12 +160,12 @@
                 "tags": [
                     "Authentication"
                 ],
-                "summary": "Logout user and invalidate JWT token",
+                "summary": "Logout user and invalidate token",
                 "description": "Logs out the authenticated user and invalidates their JWT token.",
                 "operationId": "944f39c800d7ae24b55b18868e032d07",
                 "responses": {
                     "200": {
-                        "description": "User logged out successfully",
+                        "description": "Logout successful. Token invalidated.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -197,7 +181,7 @@
                         }
                     },
                     "401": {
-                        "description": "Unauthenticated - token is missing or invalid",
+                        "description": "Unauthenticated. Token is missing or invalid.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -226,11 +210,11 @@
                     "Authentication"
                 ],
                 "summary": "Refresh JWT token",
-                "description": "Generates a new JWT token using the current valid token, invalidating the old one. See the User model for token claim structure.",
+                "description": "Generates a new JWT token using the current valid token. The old token will be invalidated.",
                 "operationId": "ffaeee28eb14655973d0c37360e5d73d",
                 "responses": {
                     "200": {
-                        "description": "JWT token refreshed successfully",
+                        "description": "Token refreshed successfully. Returns the new token.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -240,7 +224,7 @@
                                             "type": "string"
                                         },
                                         "token_type": {
-                                            "description": "Type of token",
+                                            "description": "Token type",
                                             "type": "string",
                                             "example": "bearer"
                                         },
@@ -255,7 +239,7 @@
                         }
                     },
                     "401": {
-                        "description": "Unauthenticated - token is missing or invalid",
+                        "description": "Unauthenticated. Token is missing or invalid.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -278,19 +262,19 @@
                 ]
             }
         },
-        "/api/v1/{type}/{model}/{id}": {
+        "/api/v1/{type}/{model}": {
             "get": {
                 "tags": [
                     "Resources"
                 ],
-                "summary": "Get resource(s)",
-                "description": "Retrieves a single resource by ID or a collection of resources from the specified model type. Supports filtering, sorting, and pagination.",
-                "operationId": "6d12f9c8bbe9514caa64c8ce45563087",
+                "summary": "List resources",
+                "description": "Retrieves a list of resources for the specified model type (enum or view). Supports pagination and sorting.",
+                "operationId": "146cb4fb320544278e9b44c2a5a712a1",
                 "parameters": [
                     {
                         "name": "type",
                         "in": "path",
-                        "description": "Resource type: either 'enums' or 'views'",
+                        "description": "Resource type: 'enums' or 'views'",
                         "required": true,
                         "schema": {
                             "type": "string",
@@ -303,16 +287,25 @@
                     {
                         "name": "model",
                         "in": "path",
-                        "description": "Model name (e.g., 'roleType', 'projectDetails')",
+                        "description": "Model name (e.g., 'roleType', 'projectStatus')",
                         "required": true,
                         "schema": {
                             "type": "string"
                         }
                     },
                     {
-                        "name": "id",
-                        "in": "path",
-                        "description": "Resource identifier; if omitted, returns all resources",
+                        "name": "filter[{column_name}]",
+                        "in": "query",
+                        "description": "Filter results by column values. Example: filter[name]=example",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "description": "Sort results. Usage: `sort=column_name` for ascending, `sort=-column_name` for descending. Default sort is by primary key.",
                         "required": false,
                         "schema": {
                             "type": "string"
@@ -321,7 +314,7 @@
                     {
                         "name": "page",
                         "in": "query",
-                        "description": "Page number for pagination",
+                        "description": "Page number for pagination.",
                         "required": false,
                         "schema": {
                             "type": "integer",
@@ -331,58 +324,27 @@
                     {
                         "name": "per_page",
                         "in": "query",
-                        "description": "Number of items per page",
+                        "description": "Number of items per page.",
                         "required": false,
                         "schema": {
                             "type": "integer",
                             "default": 10
                         }
-                    },
-                    {
-                        "name": "filter_field",
-                        "in": "query",
-                        "description": "Field to filter by",
-                        "required": false,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "filter_value",
-                        "in": "query",
-                        "description": "Value to use for filtering (partial matching)",
-                        "required": false,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "sort_field",
-                        "in": "query",
-                        "description": "Field to sort by; defaults to primary key",
-                        "required": false,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "sort_order",
-                        "in": "query",
-                        "description": "Sort order: 1 for ascending, -1 for descending",
-                        "required": false,
-                        "schema": {
-                            "type": "integer",
-                            "default": 1
-                        }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Resource(s) retrieved successfully",
+                        "description": "A list of resources",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "oneOf": [
+                                        {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
                                         {
                                             "properties": {
                                                 "data": {
@@ -391,18 +353,61 @@
                                                         "type": "object"
                                                     }
                                                 },
+                                                "links": {
+                                                    "properties": {
+                                                        "first": {
+                                                            "type": "string",
+                                                            "format": "url",
+                                                            "nullable": true
+                                                        },
+                                                        "last": {
+                                                            "type": "string",
+                                                            "format": "url",
+                                                            "nullable": true
+                                                        },
+                                                        "prev": {
+                                                            "type": "string",
+                                                            "format": "url",
+                                                            "nullable": true
+                                                        },
+                                                        "next": {
+                                                            "type": "string",
+                                                            "format": "url",
+                                                            "nullable": true
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
                                                 "meta": {
                                                     "properties": {
-                                                        "pagination": {
-                                                            "type": "object"
+                                                        "current_page": {
+                                                            "type": "integer"
+                                                        },
+                                                        "from": {
+                                                            "type": "integer",
+                                                            "nullable": true
+                                                        },
+                                                        "last_page": {
+                                                            "type": "integer"
+                                                        },
+                                                        "path": {
+                                                            "type": "string",
+                                                            "format": "url"
+                                                        },
+                                                        "per_page": {
+                                                            "type": "integer"
+                                                        },
+                                                        "to": {
+                                                            "type": "integer",
+                                                            "nullable": true
+                                                        },
+                                                        "total": {
+                                                            "type": "integer"
                                                         }
                                                     },
                                                     "type": "object"
                                                 }
                                             },
-                                            "type": "object"
-                                        },
-                                        {
                                             "type": "object"
                                         }
                                     ]
@@ -410,15 +415,127 @@
                             }
                         }
                     },
-                    "404": {
-                        "description": "Model or resource not found",
+                    "400": {
+                        "description": "Invalid resource type",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
                                         "message": {
                                             "type": "string",
-                                            "example": "Resource not found"
+                                            "example": "Invalid resource type"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Model not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Model not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Resources"
+                ],
+                "summary": "Create a new resource",
+                "description": "Creates a new resource in the specified model type (enum).",
+                "operationId": "3774b503037aae6d3e05dd671513a58c",
+                "parameters": [
+                    {
+                        "name": "type",
+                        "in": "path",
+                        "description": "Resource type: enums",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "enums"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "model",
+                        "in": "path",
+                        "description": "Model name (e.g., 'roleType')",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Resource data",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Resource created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Model not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Model not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "errors": {
+                                            "type": "object"
                                         }
                                     },
                                     "type": "object"
@@ -435,6 +552,98 @@
                                         "message": {
                                             "type": "string",
                                             "example": "Invalid resource type"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/{type}/{model}/{id}": {
+            "get": {
+                "tags": [
+                    "Resources"
+                ],
+                "summary": "Get a specific resource",
+                "description": "Retrieves a single resource by its ID for the specified model type (enum or view).",
+                "operationId": "6d12f9c8bbe9514caa64c8ce45563087",
+                "parameters": [
+                    {
+                        "name": "type",
+                        "in": "path",
+                        "description": "Resource type: 'enums' or 'views'",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "enums",
+                                "views"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "model",
+                        "in": "path",
+                        "description": "Model name (e.g., 'roleType', 'projectStatus')",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Resource identifier",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "A single resource",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid resource type",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Invalid resource type"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Model or resource not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Resource not found"
                                         }
                                     },
                                     "type": "object"
@@ -668,89 +877,200 @@
                 ]
             }
         },
-        "/api/v1/{type}/{model}": {
-            "post": {
+        "/api/v1/{type}/{model}/{id}/{relation}": {
+            "get": {
                 "tags": [
                     "Resources"
                 ],
-                "summary": "Create a new resource",
-                "description": "Creates a new resource in the specified model type (enum).",
-                "operationId": "3774b503037aae6d3e05dd671513a58c",
+                "summary": "Get related resources",
+                "description": "Retrieves related resources through a model's relationship. Supports sorting and pagination.",
+                "operationId": "c2bc663af5de5cc15ca7f0867781d51b",
                 "parameters": [
                     {
                         "name": "type",
                         "in": "path",
-                        "description": "Resource type: enums",
+                        "description": "Resource type: either 'enums' or 'views'",
                         "required": true,
                         "schema": {
                             "type": "string",
                             "enum": [
-                                "enums"
+                                "enums",
+                                "views"
                             ]
                         }
                     },
                     {
                         "name": "model",
                         "in": "path",
-                        "description": "Model name (e.g., 'roleType')",
+                        "description": "Model name (e.g., 'projectType')",
                         "required": true,
                         "schema": {
                             "type": "string"
                         }
-                    }
-                ],
-                "requestBody": {
-                    "description": "Resource data",
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "additionalProperties": {
-                                    "type": "string"
-                                }
-                            }
+                    },
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Resource identifier",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "relation",
+                        "in": "path",
+                        "description": "Relationship name (e.g., 'subtypes')",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "description": "Sort results. Usage: `sort=column_name` for ascending, `sort=-column_name` for descending. Default sort is by 'name' or primary key of the related model.",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number for pagination",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Number of items per page",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 10
                         }
                     }
-                },
+                ],
                 "responses": {
-                    "201": {
-                        "description": "Resource created successfully",
+                    "200": {
+                        "description": "Related resources retrieved successfully",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object"
+                                    "oneOf": [
+                                        {
+                                            "schema": "PaginatedRelatedResources",
+                                            "description": "Paginated list of related resources",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "links": {
+                                                    "properties": {
+                                                        "first": {
+                                                            "type": "string",
+                                                            "format": "url",
+                                                            "nullable": true
+                                                        },
+                                                        "last": {
+                                                            "type": "string",
+                                                            "format": "url",
+                                                            "nullable": true
+                                                        },
+                                                        "prev": {
+                                                            "type": "string",
+                                                            "format": "url",
+                                                            "nullable": true
+                                                        },
+                                                        "next": {
+                                                            "type": "string",
+                                                            "format": "url",
+                                                            "nullable": true
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "meta": {
+                                                    "properties": {
+                                                        "current_page": {
+                                                            "type": "integer"
+                                                        },
+                                                        "from": {
+                                                            "type": "integer",
+                                                            "nullable": true
+                                                        },
+                                                        "last_page": {
+                                                            "type": "integer"
+                                                        },
+                                                        "links": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "properties": {
+                                                                    "url": {
+                                                                        "type": "string",
+                                                                        "format": "url",
+                                                                        "nullable": true
+                                                                    },
+                                                                    "label": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "active": {
+                                                                        "type": "boolean"
+                                                                    }
+                                                                },
+                                                                "type": "object"
+                                                            }
+                                                        },
+                                                        "path": {
+                                                            "type": "string",
+                                                            "format": "url"
+                                                        },
+                                                        "per_page": {
+                                                            "type": "integer"
+                                                        },
+                                                        "to": {
+                                                            "type": "integer",
+                                                            "nullable": true
+                                                        },
+                                                        "total": {
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        {
+                                            "schema": "ListOfRelatedResources",
+                                            "description": "List of related resources (if not paginated)",
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    ]
                                 }
                             }
                         }
                     },
                     "404": {
-                        "description": "Model not found",
+                        "description": "Model, resource, or relation not found",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
                                         "message": {
                                             "type": "string",
-                                            "example": "Model not found"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Validation error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        },
-                                        "errors": {
-                                            "type": "object"
+                                            "example": "Resource not found"
                                         }
                                     },
                                     "type": "object"
@@ -759,14 +1079,14 @@
                         }
                     },
                     "400": {
-                        "description": "Invalid resource type",
+                        "description": "Invalid resource type or relation",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
                                         "message": {
                                             "type": "string",
-                                            "example": "Invalid resource type"
+                                            "example": "Invalid resource type or relation"
                                         }
                                     },
                                     "type": "object"
@@ -951,6 +1271,146 @@
                     },
                     "401": {
                         "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/logs": {
+            "get": {
+                "tags": [
+                    "Logs"
+                ],
+                "summary": "Get all system action logs",
+                "description": "Get all system action logs",
+                "operationId": "e1e53aff8f764be1f5ce587674413168",
+                "parameters": [
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Number of logs per page",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 15
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "description": "Sort results. Usage: `sort=field` for ascending, `sort=-field` for descending. Allowed fields: `date`, `user.username`, `action`, `project.name`. Default: `-date`",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "-date"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of all action logs",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/ActionLogResource"
+                                            }
+                                        },
+                                        "links": {
+                                            "properties": {
+                                                "first": {
+                                                    "type": "string",
+                                                    "format": "url",
+                                                    "nullable": true
+                                                },
+                                                "last": {
+                                                    "type": "string",
+                                                    "format": "url",
+                                                    "nullable": true
+                                                },
+                                                "prev": {
+                                                    "type": "string",
+                                                    "format": "url",
+                                                    "nullable": true
+                                                },
+                                                "next": {
+                                                    "type": "string",
+                                                    "format": "url",
+                                                    "nullable": true
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "meta": {
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer"
+                                                },
+                                                "from": {
+                                                    "type": "integer",
+                                                    "nullable": true
+                                                },
+                                                "last_page": {
+                                                    "type": "integer"
+                                                },
+                                                "links": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "url": {
+                                                                "type": "string",
+                                                                "format": "url",
+                                                                "nullable": true
+                                                            },
+                                                            "label": {
+                                                                "type": "string"
+                                                            },
+                                                            "active": {
+                                                                "type": "boolean"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "path": {
+                                                    "type": "string",
+                                                    "format": "url"
+                                                },
+                                                "per_page": {
+                                                    "type": "integer"
+                                                },
+                                                "to": {
+                                                    "type": "integer",
+                                                    "nullable": true
+                                                },
+                                                "total": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 },
                 "security": [
@@ -1377,23 +1837,13 @@
                         }
                     },
                     {
-                        "name": "sort_field",
+                        "name": "sort",
                         "in": "query",
-                        "description": "Field to sort by",
+                        "description": "Sort results. Usage: `sort=field` for ascending, `sort=-field` for descending. Allowed fields: `date`, `user.username`, `action`, `project.name`. Default: `-date`",
                         "required": false,
                         "schema": {
                             "type": "string",
-                            "default": "date"
-                        }
-                    },
-                    {
-                        "name": "sort_order",
-                        "in": "query",
-                        "description": "Sort order: 1 for ascending, -1 for descending",
-                        "required": false,
-                        "schema": {
-                            "type": "integer",
-                            "default": -1
+                            "default": "-date"
                         }
                     }
                 ],
@@ -1545,10 +1995,6 @@
                                                     "description": "ID of object type",
                                                     "type": "integer"
                                                 },
-                                                "id": {
-                                                    "description": "ID of object",
-                                                    "type": "integer"
-                                                },
                                                 "name": {
                                                     "type": "string"
                                                 }
@@ -1562,16 +2008,11 @@
                                         "items": {
                                             "required": [
                                                 "type_id",
-                                                "id",
                                                 "value"
                                             ],
                                             "properties": {
                                                 "type_id": {
                                                     "description": "ID of price type",
-                                                    "type": "integer"
-                                                },
-                                                "id": {
-                                                    "description": "ID of price",
                                                     "type": "integer"
                                                 },
                                                 "value": {
@@ -2823,6 +3264,96 @@
                 },
                 "type": "object"
             },
+            "CalendarEvent": {
+                "description": "CalendarEvent model",
+                "properties": {
+                    "idEvent": {
+                        "description": "Unique identifier for the calendar event",
+                        "type": "integer"
+                    },
+                    "username": {
+                        "description": "Username of the owner of the event",
+                        "type": "string"
+                    },
+                    "title": {
+                        "description": "Title of the event",
+                        "type": "string"
+                    },
+                    "description": {
+                        "description": "Description of the event",
+                        "type": "string"
+                    },
+                    "eventStart": {
+                        "description": "Start time of the event",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "eventEnd": {
+                        "description": "End time of the event",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "deleted": {
+                        "description": "Indicates if the event is deleted",
+                        "type": "boolean"
+                    },
+                    "created": {
+                        "description": "Timestamp when the event was created",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "deletedTimestamp": {
+                        "description": "Timestamp when the event was deleted",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "idOu": {
+                        "description": "Identifier for the organizational unit associated with the event",
+                        "type": "integer"
+                    },
+                    "deletedAuthor": {
+                        "description": "Username of the user who deleted the event",
+                        "type": "string"
+                    },
+                    "idEventUpdated": {
+                        "description": "Identifier of the event update",
+                        "type": "integer"
+                    }
+                },
+                "type": "object"
+            },
+            "Deadline": {
+                "description": "Deadline model",
+                "properties": {
+                    "idDeadline": {
+                        "description": "Unique identifier for the deadline",
+                        "type": "integer"
+                    },
+                    "idProject": {
+                        "description": "Identifier for the associated project",
+                        "type": "integer"
+                    },
+                    "idDeadlineType": {
+                        "description": "Identifier for the deadline type",
+                        "type": "integer"
+                    },
+                    "value": {
+                        "description": "Deadline value as a date",
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "note": {
+                        "description": "Additional note for the deadline",
+                        "type": "string"
+                    },
+                    "inserted": {
+                        "description": "Date when the deadline was inserted",
+                        "type": "string",
+                        "format": "date"
+                    }
+                },
+                "type": "object"
+            },
             "ActionType": {
                 "description": "ActionType model",
                 "properties": {
@@ -3658,38 +4189,6 @@
                 },
                 "type": "object"
             },
-            "Deadline": {
-                "description": "Deadline model",
-                "properties": {
-                    "idDeadline": {
-                        "description": "Unique identifier for the deadline",
-                        "type": "integer"
-                    },
-                    "idProject": {
-                        "description": "Identifier for the associated project",
-                        "type": "integer"
-                    },
-                    "idDeadlineType": {
-                        "description": "Identifier for the deadline type",
-                        "type": "integer"
-                    },
-                    "value": {
-                        "description": "Deadline value as a date",
-                        "type": "string",
-                        "format": "date"
-                    },
-                    "note": {
-                        "description": "Additional note for the deadline",
-                        "type": "string"
-                    },
-                    "inserted": {
-                        "description": "Date when the deadline was inserted",
-                        "type": "string",
-                        "format": "date"
-                    }
-                },
-                "type": "object"
-            },
             "Price": {
                 "description": "Price model",
                 "properties": {
@@ -4030,64 +4529,6 @@
                 },
                 "type": "object"
             },
-            "CalendarEvent": {
-                "description": "CalendarEvent model",
-                "properties": {
-                    "idEvent": {
-                        "description": "Unique identifier for the calendar event",
-                        "type": "integer"
-                    },
-                    "username": {
-                        "description": "Username of the owner of the event",
-                        "type": "string"
-                    },
-                    "title": {
-                        "description": "Title of the event",
-                        "type": "string"
-                    },
-                    "description": {
-                        "description": "Description of the event",
-                        "type": "string"
-                    },
-                    "eventStart": {
-                        "description": "Start time of the event",
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "eventEnd": {
-                        "description": "End time of the event",
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "deleted": {
-                        "description": "Indicates if the event is deleted",
-                        "type": "boolean"
-                    },
-                    "created": {
-                        "description": "Timestamp when the event was created",
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "deletedTimestamp": {
-                        "description": "Timestamp when the event was deleted",
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "idOu": {
-                        "description": "Identifier for the organizational unit associated with the event",
-                        "type": "integer"
-                    },
-                    "deletedAuthor": {
-                        "description": "Username of the user who deleted the event",
-                        "type": "string"
-                    },
-                    "idEventUpdated": {
-                        "description": "Identifier of the event update",
-                        "type": "integer"
-                    }
-                },
-                "type": "object"
-            },
             "Collaborator": {
                 "description": "Collaborator model linking a user with their assigned collaborator",
                 "properties": {
@@ -4303,19 +4744,19 @@
         "securitySchemes": {
             "bearerAuth": {
                 "type": "http",
-                "bearerFormat": "JWT",
-                "scheme": "bearer"
+                "scheme": "bearer",
+                "bearerFormat": "JWT"
             }
         }
     },
     "tags": [
         {
             "name": "Authentication",
-            "description": "Endpoints for user authentication."
+            "description": "Authentication endpoints"
         },
         {
             "name": "Users",
-            "description": "User management endpoints"
+            "description": "User management endpoints."
         },
         {
             "name": "Projects",
@@ -4328,6 +4769,15 @@
         {
             "name": "External API",
             "description": "Operations for External API view"
+        },
+        {
+            "name": "Logs",
+            "description": "Logs"
+        }
+    ],
+    "security": [
+        {
+            "bearerAuth": []
         }
     ]
 }
